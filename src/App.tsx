@@ -175,6 +175,7 @@ function App() {
                     onEditBookmark={setEditingBookmark}
                     onDeleteBookmark={(bookmarkId) => handleDeleteBookmark(activeSpace.id, group.id, bookmarkId)}
                     onEditGroup={setEditingGroup}
+                    onUpdateGroup={(updatedGroup) => handleUpdateGroup(activeSpace.id, updatedGroup)}
                     onDeleteGroup={() => handleDeleteGroup(activeSpace.id, group.id)}
                     theme={settings.theme}
                   />
@@ -240,6 +241,7 @@ function App() {
               setIsImportingBookmarks(true);
             }}
             onExportBookmarks={handleExportBookmarks}
+            handleImportBookmarksFromFile={handleImportBookmarksFromFile}
             theme={settings.theme}
             isThemeChanging={isThemeChanging}
           />

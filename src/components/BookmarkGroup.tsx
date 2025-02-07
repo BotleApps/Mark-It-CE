@@ -7,19 +7,19 @@ import toast from 'react-hot-toast';
 
 interface BookmarkGroupProps {
   group: BookmarkGroupType;
-  onToggleExpand: (id: string) => void;
   onEditBookmark: (bookmark: Bookmark) => void;
   onDeleteBookmark: (bookmarkId: string) => void;
   onEditGroup: (group: BookmarkGroupType) => void;
+  onUpdateGroup: (group: BookmarkGroupType) => void;
   onDeleteGroup: (groupId: string) => void;
   theme: 'light' | 'dark';
 }
 
 export function BookmarkGroup({
   group,
-  onToggleExpand,
   onEditBookmark,
   onDeleteBookmark,
+  onUpdateGroup,
   onEditGroup,
   onDeleteGroup,
   theme,
@@ -49,11 +49,14 @@ export function BookmarkGroup({
       [reorderedBookmarks[index], reorderedBookmarks[newIndex]] = 
       [reorderedBookmarks[newIndex], reorderedBookmarks[index]];
       
-      // Update the group with the new bookmark order
-      onEditGroup({
+  
+      // update the group with the new bookmark order
+      onUpdateGroup({
         ...group,
-        bookmarks: reorderedBookmarks
+        bookmarks: reorderedBookmarks,
       });
+
+
 
       toast.success(`Bookmark moved ${direction}`, {
         style: {

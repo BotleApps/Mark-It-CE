@@ -9,6 +9,7 @@ interface SettingsModalProps {
   onSave: (settings: AppSettings) => void;
   onImportBookmarks: () => void;
   onExportBookmarks: () => void;
+  handleImportBookmarksFromFile(data: BookmarkExport): Promise<void>
   theme: 'light' | 'dark';
   isThemeChanging: boolean;
 }
@@ -18,6 +19,7 @@ export function SettingsModal({
   onClose, 
   onSave, 
   onImportBookmarks,
+  handleImportBookmarksFromFile,
   onExportBookmarks,
   theme,
   isThemeChanging
