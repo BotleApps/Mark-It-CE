@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, Settings } from 'lucide-react';
+import { ChevronUp, ChevronDown, Trash2, Settings } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import { BookmarkTile } from './BookmarkTile';
 import type { BookmarkGroup as BookmarkGroupType, Bookmark } from '../types';
@@ -9,6 +9,7 @@ interface BookmarkGroupProps {
   group: BookmarkGroupType;
   onEditBookmark: (bookmark: Bookmark) => void;
   onDeleteBookmark: (bookmarkId: string) => void;
+  onHandleMoveGroup: (index: number, direction: 'up' | 'down') => void;
   onEditGroup: (group: BookmarkGroupType) => void;
   onUpdateGroup: (group: BookmarkGroupType) => void;
   onDeleteGroup: (groupId: string) => void;
@@ -20,6 +21,7 @@ export function BookmarkGroup({
   onEditBookmark,
   onDeleteBookmark,
   onUpdateGroup,
+  onHandleMoveGroup,
   onEditGroup,
   onDeleteGroup,
   theme,
@@ -96,7 +98,27 @@ export function BookmarkGroup({
         }`}>
           {group.name}
         </h3>
+      
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => onHandleMoveGroup(0, 'up')}
+            className={`p-1.5 rounded-full hover:bg-white/10 ${
+              theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-600'
+            }`}
+            title="Move group left">
+           <ChevronUp className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={() => onHandleMoveGroup(0, 'down')}
+            className={`p-1.5 rounded-full hover:bg-white/10 ${
+              theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-600'
+            }`}
+            title="Move group right">
+           <ChevronDown className="w-4 h-4" />
+          </button>
+        
+        
           <button
             onClick={() => onEditGroup(group)}
             className={`p-1.5 rounded-full hover:bg-white/10 ${
