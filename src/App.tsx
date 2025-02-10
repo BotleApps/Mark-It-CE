@@ -47,7 +47,7 @@ import React, { useState, useMemo, useEffect } from 'react';
         handleImportBookmarksFromFile,
       } = useBookmarks();
 
-      const activeSpace = useMemo(() => 
+      const activeSpace = useMemo(() =>
         spaces.find(space => space.id === activeSpaceId) || spaces[0],
         [spaces, activeSpaceId]
       );
@@ -82,11 +82,11 @@ import React, { useState, useMemo, useEffect } from 'react';
         const query = searchQuery.toLowerCase();
         return activeSpace.groups.reduce<BookmarkGroupType[]>((acc, group) => {
           const filteredBookmarks = group.bookmarks.filter(
-            bookmark => 
+            bookmark =>
               bookmark.title.toLowerCase().includes(query) ||
               bookmark.url.toLowerCase().includes(query)
           );
-          
+
           if (filteredBookmarks.length > 0) {
             acc.push({
               ...group,
@@ -126,49 +126,55 @@ import React, { useState, useMemo, useEffect } from 'react';
             activeSpaceId={activeSpaceId}
             activeSpace={activeSpace}
             onSpaceSelect={setActiveSpaceId}
-            onCreateSpace={() => setIsCreatingSpace(true)}
+            onCreateSpace={() => setIsCreatingGroup(true)}
             onEditSpace={setEditingSpace}
             onOpenSettings={() => setIsSettingsOpen(true)}
             theme={settings.theme}
           >
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <h1 className={`text-2xl font-bold ${
-                    settings.theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-                  }`}>
-                    {activeSpace.name}
-                  </h1>
-                  <button
-                    onClick={() => setEditingSpace(activeSpace)}
-                    className={`p-2 rounded-lg border ${
-                      settings.theme === 'dark'
+            <div className="p-4 flex gap-8">
+              {/* Middle Panel: Header and Bookmark Groups */}
+              <div className="flex-1">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <h1 className={`text-2xl font-bold ${settings.theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                      {activeSpace.name}
+                    </h1>
+                    <button
+                      onClick={() => setEditingSpace(activeSpace)}
+                      className={`p-2 rounded-lg border ${settings.theme === 'dark'
                         ? 'border-gray-700 hover:border-blue-500 text-gray-300'
                         : 'border-gray-300 hover:border-blue-500 text-gray-700'
-                    }`}
-                  >
-                    <SettingsIcon className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search for bookmarks..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className={`w-[500px] pl-4 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        settings.theme === 'dark'
-                          ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
-                          : 'border-gray-300 text-gray-900'
-                      }`}
-                    />
-                    <Search className={`absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                      settings.theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`} />
+                        }`}
+                    >
+                      <SettingsIcon className="w-5 h-5" />
+                    </button>
                   </div>
-                  <button 
+
+                  <div className="flex-grow flex items-center justify-center">
+  <div className="relative w-full max-w-[500px]">
+    <input
+      type="text"
+      placeholder="Search for bookmarks..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className={`pl-5 pr-10 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+        settings.theme === 'dark'
+          ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
+          : 'border-gray-300 text-gray-900'
+      }`}
+    />
+    <Search
+      className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
+        settings.theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+      }`}
+    />
+  </div>
+</div>
+
+
+
+                  <button
                     onClick={() => setIsCreatingGroup(true)}
                     className={`flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors`}
                   >
@@ -176,50 +182,53 @@ import React, { useState, useMemo, useEffect } from 'react';
                     Create Group
                   </button>
                 </div>
+
+
+                <div className="space-y-6">
+                  {filteredGroups.map((group, index) => (
+                    <BookmarkGroup
+                      key={group.id}
+                      group={group}
+                      onToggleExpand={() => handleUpdateGroup(activeSpace.id, {
+                        ...group,
+                        isExpanded: !group.isExpanded
+                      })}
+                      onEditBookmark={setEditingBookmark}
+                      onDeleteBookmark={(bookmarkId) => handleDeleteBookmark(activeSpace.id, group.id, bookmarkId)}
+                      onEditGroup={setEditingGroup}
+                      onUpdateGroup={(updatedGroup) => handleUpdateGroup(activeSpace.id, updatedGroup)}
+                      onDeleteGroup={() => handleDeleteGroup(activeSpace.id, group.id)}
+                      onHandleMoveGroup={(direction) => handleMoveGroup(group.id, direction)}
+                      isFirst={index === 0}
+                      isLast={index === filteredGroups.length - 1}
+                      theme={settings.theme}
+                    />
+                  ))}
+                </div>
               </div>
 
-              <div className="flex gap-8">
-                <div className="flex-1">
-                  <div className="space-y-6">
-                    {filteredGroups.map((group, index) => (
-                      <BookmarkGroup
-                        key={group.id}
-                        group={group}
-                        onToggleExpand={() => handleUpdateGroup(activeSpace.id, {
-                          ...group,
-                          isExpanded: !group.isExpanded
-                        })}
-                        onEditBookmark={setEditingBookmark}
-                        onDeleteBookmark={(bookmarkId) => handleDeleteBookmark(activeSpace.id, group.id, bookmarkId)}
-                        onEditGroup={setEditingGroup}
-                        onUpdateGroup={(updatedGroup) => handleUpdateGroup(activeSpace.id, updatedGroup)}
-                        onDeleteGroup={() => handleDeleteGroup(activeSpace.id, group.id)}
-                        onHandleMoveGroup={(direction) => handleMoveGroup(group.id, direction)}
-                        isFirst={index === 0}
-                        isLast={index === filteredGroups.length - 1}
-                        theme={settings.theme}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="w-80 flex-shrink-0">
-                  <h2 className={`text-lg font-bold mb-4 ${
-                    settings.theme === 'dark' ? 'text-white' : 'text-gray-900'
+              {/* Right Panel: Open Tabs */}
+              <div className="w-80 flex-shrink-0">
+                <p className={`mb-2 text-sm p-2 rounded-md border ${settings.theme === 'dark'
+                  ? 'bg-blue-900/50 border-blue-500/50 text-blue-300'
+                  : 'bg-blue-50 border-blue-200 text-blue-700'
                   }`}>
-                    Open Tabs
-                  </h2>
-                  <OpenTabsList
-                    tabs={openTabs}
-                    groups={activeSpace.groups}
-                    onBookmarkTab={handleBookmarkTab}
-                    theme={settings.theme}
-                  />
-                </div>
+                  Drag and drop tabs onto a group or over and click on + button to bookmark them.
+                </p>
+                <h2 className={`text-lg font-bold mb-4 ${settings.theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Open Tabs
+                </h2>
+                <OpenTabsList
+                  tabs={openTabs}
+                  groups={activeSpace.groups}
+                  onBookmarkTab={handleBookmarkTab}
+                  theme={settings.theme}
+                />
+
               </div>
             </div>
 
-            <Toaster 
+            <Toaster
               position="bottom-right"
               toastOptions={{
                 style: {
@@ -318,7 +327,7 @@ import React, { useState, useMemo, useEffect } from 'react';
                 bookmark={editingBookmark}
                 onClose={() => setEditingBookmark(null)}
                 onSave={async (updatedBookmark) => {
-                  const group = activeSpace.groups.find(g => 
+                  const group = activeSpace.groups.find(g =>
                     g.bookmarks.some(b => b.id === updatedBookmark.id)
                   );
                   if (group) {
