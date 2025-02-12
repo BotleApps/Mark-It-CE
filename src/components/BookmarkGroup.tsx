@@ -90,7 +90,7 @@ export function BookmarkGroup({
       }}
     >
       <div
-        className="flex items-center justify-between p-3 rounded-t-lg"
+        className="flex items-center justify-between p-2 rounded-t-lg"
         style={{
           backgroundColor: hexToRgba(group.color, 0.2)
         }}
