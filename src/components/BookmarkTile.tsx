@@ -13,15 +13,15 @@ interface BookmarkTileProps {
   theme: 'light' | 'dark';
 }
 
-export function BookmarkTile({ 
-  bookmark, 
-  groupColor, 
-  onEdit, 
+export function BookmarkTile({
+  bookmark,
+  groupColor,
+  onEdit,
   onDelete,
   onMove,
   isFirst,
   isLast,
-  theme 
+  theme
 }: BookmarkTileProps) {
   // Convert hex to rgba for background
   const hexToRgba = (hex: string, alpha: number) => {
@@ -42,21 +42,21 @@ export function BookmarkTile({
   };
 
   return (
-    <div 
+    <div
       style={{
         borderLeftWidth: '4px',
         borderLeftColor: groupColor,
         backgroundColor: hexToRgba(groupColor, 0.1),
       }}
       className={`group p-3 rounded-lg border h-full flex flex-col ${
-        theme === 'dark' 
-          ? 'border-gray-700 hover:shadow-md' 
+        theme === 'dark'
+          ? 'border-gray-700 hover:shadow-md'
           : 'border-gray-200 hover:shadow-md'
       }`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex-1 min-h-0 flex flex-col">
-        <div 
+        <div
           className="flex-1 min-h-0 cursor-pointer"
           onClick={handleTileClick}
         >
@@ -65,13 +65,13 @@ export function BookmarkTile({
           }`}>
             {bookmark.title}
           </h4>
-          <p className={`text-sm overflow-hidden text-ellipsis max-h-[2.5em] break-all ${
+          <p className={`text-sm overflow-hidden text-ellipsis max-h-[2.5em] break-all group-hover:max-h-[1.25em] transition-all duration-300 ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
           }`}>
             {bookmark.url}
           </p>
         </div>
-        
+
         <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity mt-2">
           <div className="flex items-center space-x-1">
             <button
@@ -99,7 +99,7 @@ export function BookmarkTile({
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="flex items-center space-x-1">
             <button
               onClick={(e) => {

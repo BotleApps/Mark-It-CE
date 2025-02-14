@@ -28,7 +28,11 @@ export function ColorPicker({ selectedColor, onColorSelect }: ColorPickerProps) 
             selectedColor === color ? 'ring-2 ring-offset-2 ring-blue-500' : 'hover:scale-110'
           }`}
           style={{ backgroundColor: color }}
-          onClick={() => onColorSelect(color)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onColorSelect(color);
+          }}
         />
       ))}
     </div>

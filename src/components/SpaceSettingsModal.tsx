@@ -16,11 +16,13 @@ export function SpaceSettingsModal({ space, onClose, onSave, theme }: SpaceSetti
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      ...space,
-      name,
-      color,
-    });
+    if (name.trim() && name.length <= 30) {
+      onSave({
+        ...space,
+        name,
+        color,
+      });
+    }
   };
 
   return (
@@ -34,11 +36,11 @@ export function SpaceSettingsModal({ space, onClose, onSave, theme }: SpaceSetti
           }`}>
             Space Settings
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className={`p-1 rounded-full ${
-              theme === 'dark' 
-                ? 'hover:bg-gray-700 text-gray-400' 
+              theme === 'dark'
+                ? 'hover:bg-gray-700 text-gray-400'
                 : 'hover:bg-gray-100 text-gray-500'
             }`}
           >
@@ -63,6 +65,7 @@ export function SpaceSettingsModal({ space, onClose, onSave, theme }: SpaceSetti
                   : 'border-gray-300 text-gray-900'
               }`}
               placeholder="Enter space name"
+              maxLength={30}
               required
             />
           </div>

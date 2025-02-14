@@ -14,12 +14,14 @@ export function CreateGroupModal({ onClose, onSave }: CreateGroupModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      name,
-      color,
-      bookmarks: [],
-      isExpanded: true,
-    });
+    if (name.trim() && name.length <= 30) {
+      onSave({
+        name,
+        color,
+        bookmarks: [],
+        isExpanded: true,
+      });
+    }
   };
 
   return (
@@ -44,6 +46,7 @@ export function CreateGroupModal({ onClose, onSave }: CreateGroupModalProps) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter group name"
               required
+              maxLength={30}
             />
           </div>
 

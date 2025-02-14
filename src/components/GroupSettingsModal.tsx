@@ -15,11 +15,13 @@ export function GroupSettingsModal({ group, onClose, onSave }: GroupSettingsModa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      ...group,
-      name,
-      color,
-    });
+    if (name.trim() && name.length <= 30) {
+      onSave({
+        ...group,
+        name,
+        color,
+      });
+    }
   };
 
   return (
@@ -42,6 +44,8 @@ export function GroupSettingsModal({ group, onClose, onSave }: GroupSettingsModa
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              maxLength={30}
+              required
             />
           </div>
 

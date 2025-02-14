@@ -15,10 +15,12 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      name,
-      color,
-    });
+    if (name.trim() && name.length <= 30) {
+      onSave({
+        name,
+        color,
+      });
+    }
   };
 
   return (
@@ -32,11 +34,11 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
           }`}>
             Create New Space
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className={`p-1 rounded-full ${
-              theme === 'dark' 
-                ? 'hover:bg-gray-700 text-gray-400' 
+              theme === 'dark'
+                ? 'hover:bg-gray-700 text-gray-400'
                 : 'hover:bg-gray-100 text-gray-500'
             }`}
           >
@@ -62,6 +64,7 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
               }`}
               placeholder="Enter space name"
               required
+              maxLength={30}
             />
           </div>
 
