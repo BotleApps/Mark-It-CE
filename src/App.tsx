@@ -115,16 +115,6 @@ function App() {
     }
   };
 
-  // const handleDeleteSpace = (spaceId: string) => {
-  //   const updatedSpaces = spaces.filter(space => space.id !== spaceId);
-  //   setActiveSpaceId(updatedSpaces[0]?.id || '');
-  //   handleUpdateSpace({
-  //     ...activeSpace,
-  //     groups: activeSpace.groups.filter(group => group.spaceId !== spaceId),
-  //   });
-  //   // Update the spaces state
-  //   handleUpdateSpace(updatedSpaces);
-  // };
 
   return (
     <DndContext
@@ -192,7 +182,8 @@ function App() {
               </button>
             </div>
 
-            <div className="space-y-6 flex-1 overflow-y-auto">
+            <div className="">
+            <div className="space-y-6 flex-1 overflow-y-auto bookmark-groups-container" style={{ maxHeight: '90vh' }}>
               {filteredGroups.map((group, index) => (
                 <BookmarkGroup
                   key={group.id}
@@ -209,6 +200,7 @@ function App() {
                 />
               ))}
             </div>
+            </div>
           </div>
 
           {/* Right Panel: Open Tabs */}
@@ -222,12 +214,14 @@ function App() {
             <h2 className={`text-lg font-bold mb-4 ${settings.theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               Open Tabs
             </h2>
+            <div className="open-tabs-container overflow-y-auto" style={{ maxHeight: '85vh' }}>
             <OpenTabsList
               tabs={openTabs}
               groups={activeSpace.groups}
               onBookmarkTab={handleBookmarkTab}
               theme={settings.theme}
             />
+            </div>
           </div>
         </div>
 
