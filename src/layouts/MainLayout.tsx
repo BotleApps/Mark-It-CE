@@ -27,7 +27,7 @@ export function MainLayout({
   children,
 }: MainLayoutProps) {
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`} style={{ position: 'relative', zIndex: 1 }}>
       <div className="flex min-h-screen">
         <div className={`w-20 flex flex-col border-r relative ${
           theme === 'dark' ? 'border-gray-800' : 'border-gray-200'

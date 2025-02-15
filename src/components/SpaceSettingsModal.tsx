@@ -28,6 +28,8 @@ export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, sp
   };
 
   const handleDelete = () => {
+    //close the modal first
+    onClose();
     if (window.confirm('Are you sure you want to delete this space and all its groups and bookmarks?')) {
       onDelete();
     }

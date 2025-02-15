@@ -36,6 +36,7 @@ function App() {
     setActiveSpaceId,
     handleCreateSpace,
     handleUpdateSpace,
+    handleDeleteSpace,
     handleCreateGroup,
     handleUpdateGroup,
     handleDeleteGroup,
@@ -114,12 +115,24 @@ function App() {
     }
   };
 
+  // const handleDeleteSpace = (spaceId: string) => {
+  //   const updatedSpaces = spaces.filter(space => space.id !== spaceId);
+  //   setActiveSpaceId(updatedSpaces[0]?.id || '');
+  //   handleUpdateSpace({
+  //     ...activeSpace,
+  //     groups: activeSpace.groups.filter(group => group.spaceId !== spaceId),
+  //   });
+  //   // Update the spaces state
+  //   handleUpdateSpace(updatedSpaces);
+  // };
+
   return (
     <DndContext
       onDragStart={dragHandlers.handleDragStart}
       onDragOver={dragHandlers.handleDragOver}
       onDragEnd={dragHandlers.handleDragEnd}
       collisionDetection={closestCenter}
+      style={{ zIndex: 200 }} // Higher z-index for DndContext
     >
       <MainLayout
         spaces={spaces}
@@ -131,9 +144,9 @@ function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         theme={settings.theme}
       >
-        <div className="p-4 flex gap-8 flex-1 overflow-hidden">
+        <div className="p-4 flex gap-8 flex-1">
           {/* Middle Panel: Header and Bookmark Groups */}
-          <div className="flex-1 flex flex-col overflow-y-auto">
+          <div className="flex-1 flex flex-col overflow-y-auto" style={{ position: 'relative' }}>
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
@@ -285,6 +298,7 @@ function App() {
               await handleUpdateSpace(updatedSpace);
               setEditingSpace(null);
             }}
+            onDelete={() => handleDeleteSpace(editingSpace.id)}
             theme={settings.theme}
           />
         )}

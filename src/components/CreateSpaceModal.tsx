@@ -30,6 +30,12 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e as any); // Type assertion to React.FormEvent
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className={`w-[400px] p-6 rounded-lg ${
@@ -64,6 +70,7 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 theme === 'dark'
                   ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'

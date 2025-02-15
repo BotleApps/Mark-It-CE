@@ -21,6 +21,12 @@ export function BookmarkEditModal({ bookmark, onClose, onSave }: BookmarkEditMod
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e as any); // Type assertion to React.FormEvent
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-[500px] p-6">
@@ -40,6 +46,7 @@ export function BookmarkEditModal({ bookmark, onClose, onSave }: BookmarkEditMod
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -52,6 +59,7 @@ export function BookmarkEditModal({ bookmark, onClose, onSave }: BookmarkEditMod
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

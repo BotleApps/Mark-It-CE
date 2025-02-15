@@ -76,23 +76,6 @@ export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups }:
             </button>
           </div>
         </form>
-
-        <button
-          type="button"
-          onClick={() => {
-            if (window.confirm('Are you sure you want to delete this group and all its bookmarks?')) {
-              onDelete();
-            }
-          }}
-          disabled={isDeleteDisabled}
-          className={`absolute bottom-4 left-4 p-2 rounded-full transition-colors ${
-            isDeleteDisabled
-              ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-              : 'bg-red-500 text-white hover:bg-red-600'
-          }`}
-        >
-          <Trash className="w-5 h-5" />
-        </button>
       </div>
     </div>
   );

@@ -45,7 +45,7 @@ export function useBookmarks() {
           refreshSpaces();
         }
       };
-      
+
       chrome.runtime.onMessage.addListener(listener);
       return () => chrome.runtime.onMessage.removeListener(listener);
     }
@@ -92,22 +92,37 @@ export function useBookmarks() {
     const newSpaces = [...spaces, space];
     setSpaces(newSpaces);
     setActiveSpaceId(space.id);
-    
+
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await chrome.storage.local.set({ spaces: newSpaces });
     }
-    
+
     return space;
   }, [spaces]);
 
   const handleUpdateSpace = useCallback(async (updatedSpace: Space) => {
-    const newSpaces = spaces.map(space => 
+    const newSpaces = spaces.map(space =>
       space.id === updatedSpace.id ? updatedSpace : space
     );
     setSpaces(newSpaces);
 
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await chrome.storage.local.set({ spaces: newSpaces });
+    }
+  }, [spaces]);
+
+  const handleDeleteSpace = useCallback(async (spaceId: string) => {
+    const newSpaces = spaces.filter(space => space.id !== spaceId);
+    setSpaces(newSpaces);
+
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      await chrome.storage.local.set({ spaces: newSpaces });
+    }
+
+    if (newSpaces.length > 0) {
+      setActiveSpaceId(newSpaces[0].id);
+    } else {
+      setActiveSpaceId('');
     }
   }, [spaces]);
 
@@ -119,7 +134,7 @@ export function useBookmarks() {
       isExpanded: true,
     };
 
-    const newSpaces = spaces.map(space => 
+    const newSpaces = spaces.map(space =>
       space.id === spaceId
         ? { ...space, groups: [...space.groups, group] }
         : space
@@ -134,11 +149,11 @@ export function useBookmarks() {
   }, [spaces]);
 
   const handleUpdateGroup = useCallback(async (spaceId: string, updatedGroup: BookmarkGroup) => {
-    const newSpaces = spaces.map(space => 
+    const newSpaces = spaces.map(space =>
       space.id === spaceId
         ? {
             ...space,
-            groups: space.groups.map(group => 
+            groups: space.groups.map(group =>
               group.id === updatedGroup.id ? updatedGroup : group
             )
           }
@@ -153,7 +168,7 @@ export function useBookmarks() {
 
   const handleDeleteGroup = useCallback(async (spaceId: string, groupId: string) => {
     if (window.confirm('Are you sure you want to delete this group and all its bookmarks?')) {
-      const newSpaces = spaces.map(space => 
+      const newSpaces = spaces.map(space =>
         space.id === spaceId
           ? {
               ...space,
@@ -195,11 +210,11 @@ export function useBookmarks() {
       id: newBookmarkId,
     };
 
-    const newSpaces = spaces.map(space => 
+    const newSpaces = spaces.map(space =>
       space.id === spaceId
         ? {
             ...space,
-            groups: space.groups.map(group => 
+            groups: space.groups.map(group =>
               group.id === groupId
                 ? {
                     ...group,
@@ -221,15 +236,15 @@ export function useBookmarks() {
   }, [spaces]);
 
   const handleUpdateBookmark = useCallback(async (spaceId: string, groupId: string, updatedBookmark: Bookmark) => {
-    const newSpaces = spaces.map(space => 
+    const newSpaces = spaces.map(space =>
       space.id === spaceId
         ? {
             ...space,
-            groups: space.groups.map(group => 
+            groups: space.groups.map(group =>
               group.id === groupId
                 ? {
                     ...group,
-                    bookmarks: group.bookmarks.map(bookmark => 
+                    bookmarks: group.bookmarks.map(bookmark =>
                       bookmark.id === updatedBookmark.id ? updatedBookmark : bookmark
                     )
                   }
@@ -258,11 +273,11 @@ export function useBookmarks() {
   }, [spaces]);
 
   const handleDeleteBookmark = useCallback(async (spaceId: string, groupId: string, bookmarkId: string) => {
-    const newSpaces = spaces.map(space => 
+    const newSpaces = spaces.map(space =>
       space.id === spaceId
         ? {
             ...space,
-            groups: space.groups.map(group => 
+            groups: space.groups.map(group =>
               group.id === groupId
                 ? {
                     ...group,
@@ -329,7 +344,7 @@ export function useBookmarks() {
           group.bookmarks = bookmarks;
 
           // Add the group to the current space
-          const newSpaces = spaces.map(space => 
+          const newSpaces = spaces.map(space =>
             space.id === spaceId
               ? { ...space, groups: [...space.groups, group] }
               : space
@@ -417,7 +432,7 @@ export function useBookmarks() {
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      
+
       const a = document.createElement('a');
       a.href = url;
       a.download = `bookmarks-export-${new Date().toISOString().split('T')[0]}.json`;
@@ -440,6 +455,7 @@ export function useBookmarks() {
     setActiveSpaceId,
     handleCreateSpace,
     handleUpdateSpace,
+    handleDeleteSpace,
     handleCreateGroup,
     handleUpdateGroup,
     handleDeleteGroup,
