@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Trash } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import type { BookmarkGroup } from '../types';
 
@@ -7,9 +7,11 @@ interface GroupSettingsModalProps {
   group: BookmarkGroup;
   onClose: () => void;
   onSave: (updatedGroup: BookmarkGroup) => void;
+  onDelete: () => void;
+  groups: BookmarkGroup[];
 }
 
-export function GroupSettingsModal({ group, onClose, onSave }: GroupSettingsModalProps) {
+export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups }: GroupSettingsModalProps) {
   const [name, setName] = useState(group.name);
   const [color, setColor] = useState(group.color);
 
@@ -23,6 +25,8 @@ export function GroupSettingsModal({ group, onClose, onSave }: GroupSettingsModa
       });
     }
   };
+
+  const isDeleteDisabled = groups?.length <= 1;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -72,6 +76,23 @@ export function GroupSettingsModal({ group, onClose, onSave }: GroupSettingsModa
             </button>
           </div>
         </form>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm('Are you sure you want to delete this group and all its bookmarks?')) {
+              onDelete();
+            }
+          }}
+          disabled={isDeleteDisabled}
+          className={`absolute bottom-4 left-4 p-2 rounded-full transition-colors ${
+            isDeleteDisabled
+              ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+              : 'bg-red-500 text-white hover:bg-red-600'
+          }`}
+        >
+          <Trash className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );

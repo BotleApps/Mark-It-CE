@@ -126,14 +126,14 @@ function App() {
         activeSpaceId={activeSpaceId}
         activeSpace={activeSpace}
         onSpaceSelect={setActiveSpaceId}
-        onCreateSpace={() => setIsCreatingGroup(true)}
+        onCreateSpace={() => setIsCreatingSpace(true)}
         onEditSpace={setEditingSpace}
         onOpenSettings={() => setIsSettingsOpen(true)}
         theme={settings.theme}
       >
-        <div className="p-4 flex gap-8">
+        <div className="p-4 flex gap-8 flex-1 overflow-hidden">
           {/* Middle Panel: Header and Bookmark Groups */}
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
@@ -170,8 +170,6 @@ function App() {
                 </div>
               </div>
 
-
-
               <button
                 onClick={() => setIsCreatingGroup(true)}
                 className={`flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors`}
@@ -181,16 +179,11 @@ function App() {
               </button>
             </div>
 
-
-            <div className="space-y-6">
+            <div className="space-y-6 flex-1 overflow-y-auto">
               {filteredGroups.map((group, index) => (
                 <BookmarkGroup
                   key={group.id}
                   group={group}
-                  onToggleExpand={() => handleUpdateGroup(activeSpace.id, {
-                    ...group,
-                    isExpanded: !group.isExpanded
-                  })}
                   onEditBookmark={setEditingBookmark}
                   onDeleteBookmark={(bookmarkId) => handleDeleteBookmark(activeSpace.id, group.id, bookmarkId)}
                   onEditGroup={setEditingGroup}
@@ -206,7 +199,7 @@ function App() {
           </div>
 
           {/* Right Panel: Open Tabs */}
-          <div className="w-80 flex-shrink-0">
+          <div className="w-80 flex-shrink-0 flex flex-col overflow-y-auto">
             <p className={`mb-2 text-sm p-2 rounded-md border ${settings.theme === 'dark'
               ? 'bg-blue-900/50 border-blue-500/50 text-blue-300'
               : 'bg-blue-50 border-blue-200 text-blue-700'
@@ -222,7 +215,6 @@ function App() {
               onBookmarkTab={handleBookmarkTab}
               theme={settings.theme}
             />
-
           </div>
         </div>
 

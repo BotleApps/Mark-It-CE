@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Trash } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import type { Space } from '../types';
 
@@ -7,10 +7,12 @@ interface SpaceSettingsModalProps {
   space: Space;
   onClose: () => void;
   onSave: (updatedSpace: Space) => void;
+  onDelete: () => void;
   theme: 'light' | 'dark';
+  spaces: Space[] | undefined;
 }
 
-export function SpaceSettingsModal({ space, onClose, onSave, theme }: SpaceSettingsModalProps) {
+export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, spaces }: SpaceSettingsModalProps) {
   const [name, setName] = useState(space.name);
   const [color, setColor] = useState(space.color);
 
@@ -25,9 +27,17 @@ export function SpaceSettingsModal({ space, onClose, onSave, theme }: SpaceSetti
     }
   };
 
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this space and all its groups and bookmarks?')) {
+      onDelete();
+    }
+  };
+
+  const isDeleteDisabled = spaces?.length <= 1;
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={`w-[400px] p-6 rounded-lg ${
+      <div className={`w-[400px] p-6 rounded-lg relative ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between mb-6">
@@ -99,6 +109,19 @@ export function SpaceSettingsModal({ space, onClose, onSave, theme }: SpaceSetti
             </button>
           </div>
         </form>
+
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={isDeleteDisabled}
+          className={`absolute bottom-4 left-4 p-2 rounded-full transition-colors ${
+            isDeleteDisabled
+              ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+              : 'bg-red-500 text-white hover:bg-red-600'
+          }`}
+        >
+          <Trash className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );

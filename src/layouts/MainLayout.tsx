@@ -40,7 +40,7 @@ export function MainLayout({
             onEditSpace={onEditSpace}
             theme={theme}
           />
-          
+
           <button
             onClick={onOpenSettings}
             className={`absolute bottom-4 left-1/2 -translate-x-1/2 p-2 rounded-full transition-colors ${
@@ -53,7 +53,7 @@ export function MainLayout({
           </button>
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col overflow-hidden">
           {children}
         </div>
       </div>

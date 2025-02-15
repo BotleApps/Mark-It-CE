@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import type { BookmarkGroup } from '../types';
@@ -11,6 +11,13 @@ interface CreateGroupModalProps {
 export function CreateGroupModal({ onClose, onSave }: CreateGroupModalProps) {
   const [name, setName] = useState('');
   const [color, setColor] = useState('#3B82F6');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +54,7 @@ export function CreateGroupModal({ onClose, onSave }: CreateGroupModalProps) {
               placeholder="Enter group name"
               required
               maxLength={30}
+              ref={nameInputRef}
             />
           </div>
 

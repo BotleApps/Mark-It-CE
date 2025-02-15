@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import type { Space } from '../types';
@@ -12,6 +12,13 @@ interface CreateSpaceModalProps {
 export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalProps) {
   const [name, setName] = useState('');
   const [color, setColor] = useState('#3B82F6');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +72,7 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
               placeholder="Enter space name"
               required
               maxLength={30}
+              ref={nameInputRef}
             />
           </div>
 

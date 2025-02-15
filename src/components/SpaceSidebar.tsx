@@ -11,13 +11,13 @@ interface SpaceSidebarProps {
   theme: 'light' | 'dark';
 }
 
-export function SpaceSidebar({ 
-  spaces, 
-  activeSpaceId, 
-  onSpaceSelect, 
+export function SpaceSidebar({
+  spaces,
+  activeSpaceId,
+  onSpaceSelect,
   onCreateSpace,
   onEditSpace,
-  theme 
+  theme
 }: SpaceSidebarProps) {
   return (
     <div className="flex-1 flex flex-col items-center py-4">
@@ -38,7 +38,7 @@ export function SpaceSidebar({
           </span>
         </button>
       ))}
-      
+
       <button
         onClick={onCreateSpace}
         className={`w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105 ${
