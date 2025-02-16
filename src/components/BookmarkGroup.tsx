@@ -90,12 +90,12 @@ export function BookmarkGroup({
       }}
     >
       <div
-        className="flex items-center justify-between p-2 rounded-t-lg"
+        className="flex items-center justify-between p-1.5 rounded-t-lg"
         style={{
           backgroundColor: hexToRgba(group.color, 0.2)
         }}
       >
-        <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'
+        <h3 className={`text-md font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
           {group.name}
         </h3>
@@ -141,7 +141,7 @@ export function BookmarkGroup({
         </div>
       </div>
 
-      <div className="p-3 min-h-[120px]">
+      <div className="p-3 min-h-[100px]">
         {group.bookmarks.length === 0 ? (
           <div
             className={`flex items-center justify-center text-center min-h-[100px] ${theme === 'dark'
@@ -152,7 +152,7 @@ export function BookmarkGroup({
             Drag and drop Open Tabs here to add them to this group.
           </div>
         ) : (
-          <div className="grid auto-rows-[100px] grid-cols-[repeat(auto-fill,250px)] gap-3">
+          <div className="grid auto-rows-[80px] grid-cols-[repeat(auto-fill,250px)] gap-3">
             {group.bookmarks.map((bookmark, index) => (
               <BookmarkTile
                 key={bookmark.id}

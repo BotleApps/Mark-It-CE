@@ -48,7 +48,7 @@ export function BookmarkTile({
         borderLeftColor: groupColor,
         backgroundColor: hexToRgba(groupColor, 0.1),
       }}
-      className={`group p-3 rounded-lg border h-full flex flex-col ${
+      className={`group p-1.5 rounded-lg border h-full flex flex-col ${
         theme === 'dark'
           ? 'border-gray-700 hover:shadow-md'
           : 'border-gray-200 hover:shadow-md'
@@ -60,12 +60,12 @@ export function BookmarkTile({
           className="flex-1 min-h-0 cursor-pointer"
           onClick={handleTileClick}
         >
-          <h4 className={`font-medium truncate mb-1 ${
+          <h4 className={`text-sm font-medium truncate mb-0.5 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
             {bookmark.title}
           </h4>
-          <p className={`text-sm overflow-hidden text-ellipsis max-h-[2.5em] break-all group-hover:max-h-[1.25em] transition-all duration-300 ${
+          <p className={`text-xs overflow-hidden text-ellipsis max-h-[2.5em] break-all group-hover:max-h-[1.25em] transition-all duration-300 ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
           }`}>
             {bookmark.url}

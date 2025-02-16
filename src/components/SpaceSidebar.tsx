@@ -7,7 +7,6 @@ interface SpaceSidebarProps {
   activeSpaceId: string;
   onSpaceSelect: (spaceId: string) => void;
   onCreateSpace: () => void;
-  onEditSpace: (space: Space) => void;
   theme: 'light' | 'dark';
 }
 
@@ -16,7 +15,6 @@ export function SpaceSidebar({
   activeSpaceId,
   onSpaceSelect,
   onCreateSpace,
-  onEditSpace,
   theme
 }: SpaceSidebarProps) {
   return (
@@ -25,7 +23,7 @@ export function SpaceSidebar({
         <button
           key={space.id}
           onClick={() => onSpaceSelect(space.id)}
-          className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold mb-3 transition-all ${
+          className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-semibold mb-3 transition-all ${
             activeSpaceId === space.id
               ? 'ring-2 ring-blue-500 ring-offset-2 scale-110'
               : 'hover:scale-105'

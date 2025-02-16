@@ -63,12 +63,12 @@ export function DraggableTab({ tab, groups, onBookmarkTab, theme }: DraggableTab
         } transition-colors touch-none`}
       >
         <div className="flex-1 min-w-0 mr-4">
-          <h3 className={`font-medium truncate ${
+          <h3 className={`text-sm font-medium truncate ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
             {tab.title}
           </h3>
-          <p className={`text-sm truncate ${
+          <p className={`text-xs truncate ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
           }`}>
             {tab.url}
