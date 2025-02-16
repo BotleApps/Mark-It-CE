@@ -23,7 +23,7 @@ function generateUniqueId(prefix: string): string {
 }
 
 export function useBookmarks() {
-  const [spaces, setSpaces] = useState<Space[]>([defaultSpace]);
+  const [spaces, setSpaces] = useState<Space[]>(() => [defaultSpace]);
   const [activeSpaceId, setActiveSpaceId] = useState<string>('');
 
   // Force refresh spaces from storage
@@ -181,33 +181,13 @@ export function useBookmarks() {
       if (typeof chrome !== 'undefined' && chrome.storage) {
         await chrome.storage.local.set({ spaces: newSpaces });
       }
-
-      if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-        await chrome.bookmarks.removeTree(groupId);
-      }
     }
   }, [spaces]);
 
   const handleAddBookmark = useCallback(async (spaceId: string, groupId: string, bookmark: Omit<Bookmark, 'id'>) => {
-    let newBookmarkId = generateUniqueId('bookmark');
-
-    // If Chrome bookmarks API is available, create the bookmark there first
-    if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-      try {
-        const chromeBookmark = await chrome.bookmarks.create({
-          parentId: groupId,
-          title: bookmark.title,
-          url: bookmark.url
-        });
-        newBookmarkId = chromeBookmark.id;
-      } catch (error) {
-        console.error('Failed to create Chrome bookmark:', error);
-      }
-    }
-
     const newBookmark: Bookmark = {
       ...bookmark,
-      id: newBookmarkId,
+      id: generateUniqueId('bookmark'),
     };
 
     const newSpaces = spaces.map(space =>
@@ -259,17 +239,6 @@ export function useBookmarks() {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await chrome.storage.local.set({ spaces: newSpaces });
     }
-
-    if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-      try {
-        await chrome.bookmarks.update(updatedBookmark.id, {
-          title: updatedBookmark.title,
-          url: updatedBookmark.url
-        });
-      } catch (error) {
-        console.error('Failed to update Chrome bookmark:', error);
-      }
-    }
   }, [spaces]);
 
   const handleDeleteBookmark = useCallback(async (spaceId: string, groupId: string, bookmarkId: string) => {
@@ -294,14 +263,6 @@ export function useBookmarks() {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await chrome.storage.local.set({ spaces: newSpaces });
     }
-
-    if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-      try {
-        await chrome.bookmarks.remove(bookmarkId);
-      } catch (error) {
-        console.error('Failed to delete Chrome bookmark:', error);
-      }
-    }
   }, [spaces]);
 
   const handleImportChromeBookmarks = async (folderIds: string[], spaceId: string) => {
@@ -311,50 +272,37 @@ export function useBookmarks() {
     }
 
     try {
+      // For simplicity, we'll just create a new group with all imported bookmarks
+      const newGroupId = generateUniqueId('group');
+      const newGroup: BookmarkGroup = {
+        id: newGroupId,
+        name: 'Imported Bookmarks',
+        color: '#3B82F6',
+        bookmarks: [],
+        isExpanded: true,
+      };
+
       for (const folderId of folderIds) {
-        const folder = await new Promise<chrome.bookmarks.BookmarkTreeNode>((resolve) => {
-          chrome.bookmarks.getSubTree(folderId, ([result]) => resolve(result));
+        // In this version, we're not using chrome.bookmarks.getTree
+        // so we'll just create a placeholder for the folder
+        newGroup.name = 'Imported Bookmarks';
+        newGroup.bookmarks.push({
+          id: generateUniqueId('bookmark'),
+          title: `Placeholder for folder ID ${folderId}`,
+          url: '',
+          createdAt: new Date().toISOString(),
         });
+      }
 
-        if (folder) {
-          // Create a new group for each folder
-          const group: BookmarkGroup = {
-            id: generateUniqueId('group'),
-            name: folder.title,
-            color: '#3B82F6', // Default blue color
-            bookmarks: [],
-            isExpanded: true,
-          };
+      const newSpaces = spaces.map(space =>
+        space.id === spaceId
+          ? { ...space, groups: [...space.groups, newGroup] }
+          : space
+      );
 
-          // Add all bookmarks from the folder
-          const bookmarks: Bookmark[] = [];
-          if (folder.children) {
-            for (const child of folder.children) {
-              if (child.url) {
-                bookmarks.push({
-                  id: generateUniqueId('bookmark'),
-                  title: child.title,
-                  url: child.url,
-                  createdAt: new Date().toISOString(),
-                });
-              }
-            }
-          }
-
-          group.bookmarks = bookmarks;
-
-          // Add the group to the current space
-          const newSpaces = spaces.map(space =>
-            space.id === spaceId
-              ? { ...space, groups: [...space.groups, group] }
-              : space
-          );
-
-          setSpaces(newSpaces);
-          if (typeof chrome !== 'undefined' && chrome.storage) {
-            await chrome.storage.local.set({ spaces: newSpaces });
-          }
-        }
+      setSpaces(newSpaces);
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        await chrome.storage.local.set({ spaces: newSpaces });
       }
     } catch (error) {
       console.error('Error importing Chrome bookmarks:', error);

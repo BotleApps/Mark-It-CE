@@ -1,2 +1,2 @@
 # Mark-It-CE
-Mark It, bookmarks manager - Chrome Extension
+Mark It, bookmarks manager, Todo Manager - Chrome Extension
