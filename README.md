@@ -112,7 +112,14 @@ For issues or feature requests, visit our [Issue Tracker](https://github.com/Bot
 
 ## 🔄 Release Notes
 
-### **v1.0.1** *(Latest)*
+### **v1.0.2** *(Latest)*
+
+🐞 **Bug Fixes:**
+
+- Import for Chrome Bookmarks issue fix
+- UX - Text & space size fixes
+
+### **v1.0.1**
 
 ✅ **New Features:**
 

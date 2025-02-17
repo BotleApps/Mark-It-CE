@@ -248,7 +248,7 @@ export function SettingsModal({
                       : 'border-gray-200 hover:border-blue-500 text-gray-700'
                   }`}
                 >
-                  <Upload className="w-5 h-5" />
+                  <Download className="w-5 h-5" />
                   <div className="text-left">
                     <h4 className="font-medium">Import from Chrome Bookmarks</h4>
                     <p className={`text-sm ${
@@ -267,7 +267,7 @@ export function SettingsModal({
                       : 'border-gray-200 hover:border-blue-500 text-gray-700'
                   }`}
                 >
-                  <Upload className="w-5 h-5" />
+                  <Download className="w-5 h-5" />
                   <div className="text-left">
                     <h4 className="font-medium">Import from File</h4>
                     <p className={`text-sm ${

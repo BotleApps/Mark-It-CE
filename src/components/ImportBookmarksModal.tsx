@@ -102,58 +102,107 @@ export function ImportBookmarksModal({ onClose, onImport, theme }: ImportBookmar
     );
   };
 
-  const updateFolderSelection = (folders: FolderNode[], folderId: string, selected: boolean): FolderNode[] => {
-    return folders.map(folder => {
-      if (folder.id === folderId) {
-        // Update this folder and all its children
-        const updatedFolder = {
-          ...folder,
-          selected,
-          children: folder.children.map(child => ({
-            ...child,
-            selected
-          }))
-        };
-        
-        // Update selectedFolders state
-        if (selected) {
-          setSelectedFolders(prev => [...prev, folder.id, ...folder.children.map(c => c.id)]);
-        } else {
-          setSelectedFolders(prev => prev.filter(id => id !== folder.id && !folder.children.map(c => c.id).includes(id)));
-        }
-        
-        return updatedFolder;
-      }
-      
-      if (folder.children.length > 0) {
-        return {
-          ...folder,
-          children: updateFolderSelection(folder.children, folderId, selected)
-        };
-      }
-      
-      return folder;
+  // Get all descendant folder IDs (including the current folder)
+  const getAllDescendantIds = (folder: FolderNode): string[] => {
+    let ids: string[] = [folder.id];
+    folder.children.forEach(child => {
+      ids = [...ids, ...getAllDescendantIds(child)];
     });
+    return ids;
   };
 
-  const handleToggleFolder = (folderId: string) => {
-    const folder = findFolder(rootFolders, folderId);
-    if (folder) {
-      const newSelected = !folder.selected;
-      setRootFolders(prev => updateFolderSelection(prev, folderId, newSelected));
-    }
-  };
-
-  const findFolder = (folders: FolderNode[], id: string): FolderNode | null => {
+  // Get path from root to given folder ID
+  const getFolderPath = (folders: FolderNode[], targetId: string, path: FolderNode[] = []): FolderNode[] | null => {
     for (const folder of folders) {
-      if (folder.id === id) return folder;
+      if (folder.id === targetId) {
+        return [...path, folder];
+      }
       if (folder.children.length > 0) {
-        const found = findFolder(folder.children, id);
-        if (found) return found;
+        const newPath = getFolderPath(folder.children, targetId, [...path, folder]);
+        if (newPath) return newPath;
       }
     }
     return null;
   };
+
+  // Update folder and all its descendants
+  const updateFolderAndDescendants = (folder: FolderNode, selected: boolean): FolderNode => {
+    return {
+      ...folder,
+      selected,
+      children: folder.children.map(child => updateFolderAndDescendants(child, selected))
+    };
+  };
+
+  // Update a folder's selection state based on its children
+  const updateFolderBasedOnChildren = (folder: FolderNode): FolderNode => {
+    if (folder.children.length === 0) return folder;
+
+    const updatedChildren = folder.children.map(updateFolderBasedOnChildren);
+    const allChildrenSelected = updatedChildren.every(child => child.selected);
+
+    return {
+      ...folder,
+      selected: allChildrenSelected,
+      children: updatedChildren
+    };
+  };
+
+  const handleToggleFolder = (folderId: string) => {
+    setRootFolders(prevFolders => {
+      // Deep clone the current state
+      let newFolders = JSON.parse(JSON.stringify(prevFolders));
+      
+      // Find the path to the target folder
+      const folderPath = getFolderPath(newFolders, folderId);
+      if (!folderPath) return prevFolders;
+
+      // Get the target folder
+      const targetFolder = folderPath[folderPath.length - 1];
+      const newSelected = !targetFolder.selected;
+
+      // Function to update a specific folder in the tree
+      const updateFolderInTree = (folders: FolderNode[], targetId: string, updater: (folder: FolderNode) => FolderNode): FolderNode[] => {
+        return folders.map(folder => {
+          if (folder.id === targetId) {
+            return updater(folder);
+          }
+          if (folder.children.length > 0) {
+            return {
+              ...folder,
+              children: updateFolderInTree(folder.children, targetId, updater)
+            };
+          }
+          return folder;
+        });
+      };
+
+      // First, update the target folder and all its descendants
+      newFolders = updateFolderInTree(newFolders, folderId, folder => 
+        updateFolderAndDescendants(folder, newSelected)
+      );
+
+      // Then, update all ancestors based on their children's state
+      for (let i = folderPath.length - 2; i >= 0; i--) {
+        const ancestorId = folderPath[i].id;
+        newFolders = updateFolderInTree(newFolders, ancestorId, updateFolderBasedOnChildren);
+      }
+
+      // Update selectedFolders state
+      const allDescendantIds = getAllDescendantIds(targetFolder);
+      setSelectedFolders(prev => {
+        if (newSelected) {
+          return [...new Set([...prev, ...allDescendantIds])];
+        } else {
+          return prev.filter(id => !allDescendantIds.includes(id));
+        }
+      });
+
+      return newFolders;
+    });
+  };
+
+  // ... rest of the component remains the same ...
 
   const renderFolder = (folder: FolderNode) => {
     const isExpanded = expandedFolders.includes(folder.id);

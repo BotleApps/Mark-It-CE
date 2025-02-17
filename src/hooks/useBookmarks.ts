@@ -270,36 +270,70 @@ export function useBookmarks() {
       console.warn('Chrome bookmarks API not available');
       return;
     }
-
+  
     try {
-      // For simplicity, we'll just create a new group with all imported bookmarks
-      const newGroupId = generateUniqueId('group');
-      const newGroup: BookmarkGroup = {
-        id: newGroupId,
-        name: 'Imported Bookmarks',
-        color: '#3B82F6',
-        bookmarks: [],
-        isExpanded: true,
+      const newGroups: BookmarkGroup[] = [];
+      // Map to track processed folders using Chrome bookmark ID as key
+      const processedFolders = new Map<string, string>();
+  
+      const traverseBookmarks = async (
+        node: chrome.bookmarks.BookmarkTreeNode, 
+        parentGroupId: string | null = null
+      ) => {
+        if (node.url) {
+          // Handle bookmark
+          const group = newGroups.find(g => g.id === parentGroupId);
+          if (group) {
+            group.bookmarks.push({
+              id: generateUniqueId('bookmark'),
+              title: node.title,
+              url: node.url,
+              createdAt: new Date().toISOString(),
+            });
+          }
+        } else if (node.children) {
+          // Check if this folder was already processed
+          let groupId = processedFolders.get(node.id);
+  
+          if (!groupId) {
+            // Create new group only if it hasn't been processed
+            groupId = generateUniqueId('group');
+            const newGroup: BookmarkGroup = {
+              id: groupId,
+              name: node.title || 'Imported Folder',
+              color: '#3B82F6',
+              bookmarks: [],
+              isExpanded: true,
+            };
+            newGroups.push(newGroup);
+            processedFolders.set(node.id, groupId);
+          }
+  
+          // Process children
+          for (const child of node.children) {
+            await traverseBookmarks(child, groupId);
+          }
+        }
       };
-
+  
+      // Process selected folders
       for (const folderId of folderIds) {
-        // In this version, we're not using chrome.bookmarks.getTree
-        // so we'll just create a placeholder for the folder
-        newGroup.name = 'Imported Bookmarks';
-        newGroup.bookmarks.push({
-          id: generateUniqueId('bookmark'),
-          title: `Placeholder for folder ID ${folderId}`,
-          url: '',
-          createdAt: new Date().toISOString(),
-        });
+        // Skip if already processed
+        if (!processedFolders.has(folderId)) {
+          const nodes = await chrome.bookmarks.getSubTree(folderId);
+          for (const node of nodes) {
+            await traverseBookmarks(node);
+          }
+        }
       }
-
+  
+      // Update spaces with unique groups
       const newSpaces = spaces.map(space =>
         space.id === spaceId
-          ? { ...space, groups: [...space.groups, newGroup] }
+          ? { ...space, groups: [...space.groups, ...newGroups] }
           : space
       );
-
+  
       setSpaces(newSpaces);
       if (typeof chrome !== 'undefined' && chrome.storage) {
         await chrome.storage.local.set({ spaces: newSpaces });

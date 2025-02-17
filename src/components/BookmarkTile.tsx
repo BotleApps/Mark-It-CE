@@ -23,7 +23,6 @@ export function BookmarkTile({
   isLast,
   theme
 }: BookmarkTileProps) {
-  // Convert hex to rgba for background
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -32,13 +31,10 @@ export function BookmarkTile({
   };
 
   const handleTileClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.open(bookmark.url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleMove = (e: React.MouseEvent, direction: 'left' | 'right') => {
-    e.stopPropagation();
-    onMove(direction);
+    // Ensure the click is on the tile itself or within the bookmark content
+    if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.bookmark-content')) {
+      window.open(bookmark.url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -48,18 +44,16 @@ export function BookmarkTile({
         borderLeftColor: groupColor,
         backgroundColor: hexToRgba(groupColor, 0.1),
       }}
-      className={`group p-1.5 rounded-lg border h-full flex flex-col ${
+      className={`group p-1.5 rounded-lg border h-full cursor-pointer ${
         theme === 'dark'
           ? 'border-gray-700 hover:shadow-md'
           : 'border-gray-200 hover:shadow-md'
       }`}
-      onClick={(e) => e.stopPropagation()}
+      onClick={handleTileClick}
     >
-      <div className="flex-1 min-h-0 flex flex-col">
-        <div
-          className="flex-1 min-h-0 cursor-pointer"
-          onClick={handleTileClick}
-        >
+      <div className="flex flex-col h-full">
+        {/* Bookmark Content Area */}
+        <div className="flex-1 min-h-0 bookmark-content">
           <h4 className={`text-sm font-medium truncate mb-0.5 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
@@ -72,10 +66,17 @@ export function BookmarkTile({
           </p>
         </div>
 
-        <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity mt-2">
+        {/* Actions Container */}
+        <div
+          className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between"
+          onClick={handleTileClick}
+        >
           <div className="flex items-center space-x-1">
             <button
-              onClick={(e) => handleMove(e, 'left')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove('left');
+              }}
               disabled={isFirst}
               className={`p-1.5 rounded-full transition-colors ${
                 theme === 'dark'
@@ -87,7 +88,10 @@ export function BookmarkTile({
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={(e) => handleMove(e, 'right')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove('right');
+              }}
               disabled={isLast}
               className={`p-1.5 rounded-full transition-colors ${
                 theme === 'dark'
