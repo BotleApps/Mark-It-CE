@@ -294,6 +294,7 @@ function App() {
             }}
             onDelete={() => handleDeleteSpace(editingSpace.id)}
             theme={settings.theme}
+            spaces={spaces}
           />
         )}
 

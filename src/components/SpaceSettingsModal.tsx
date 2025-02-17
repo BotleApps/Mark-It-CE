@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Trash } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import type { Space } from '../types';
@@ -16,6 +16,11 @@ export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, sp
   const [name, setName] = useState(space.name);
   const [color, setColor] = useState(space.color);
 
+  // Log the spaces prop to check its value
+  useEffect(() => {
+    console.log('Spaces:', spaces);
+  }, [spaces]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && name.length <= 30) {
@@ -28,14 +33,15 @@ export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, sp
   };
 
   const handleDelete = () => {
-    //close the modal first
+    // Close the modal first
     onClose();
     if (window.confirm('Are you sure you want to delete this space and all its groups and bookmarks?')) {
       onDelete();
     }
   };
 
-  const isDeleteDisabled = spaces?.length <= 1;
+  // Ensure spaces is an array before checking its length
+  const isDeleteDisabled = !Array.isArray(spaces) || spaces.length <= 1;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -119,7 +125,7 @@ export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, sp
           className={`absolute bottom-4 left-4 p-2 rounded-full transition-colors ${
             isDeleteDisabled
               ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-              : 'bg-red-500 text-white hover:bg-red-600'
+              : 'bg-red-400 text-white hover:bg-red-500'
           }`}
         >
           <Trash className="w-5 h-5" />

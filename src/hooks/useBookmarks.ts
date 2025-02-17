@@ -242,6 +242,7 @@ export function useBookmarks() {
   }, [spaces]);
 
   const handleDeleteBookmark = useCallback(async (spaceId: string, groupId: string, bookmarkId: string) => {
+    if (window.confirm('Are you sure you want to delete this bookmark?')) {
     const newSpaces = spaces.map(space =>
       space.id === spaceId
         ? {
@@ -263,6 +264,7 @@ export function useBookmarks() {
     if (typeof chrome !== 'undefined' && chrome.storage) {
       await chrome.storage.local.set({ spaces: newSpaces });
     }
+  }
   }, [spaces]);
 
   const handleImportChromeBookmarks = async (folderIds: string[], spaceId: string) => {
