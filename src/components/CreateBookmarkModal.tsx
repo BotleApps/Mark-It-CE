@@ -2,16 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import type { Bookmark } from '../types';
 
-interface BookmarkEditModalProps {
-  bookmark: Bookmark;
+interface CreateBookmarkModalProps {
   onClose: () => void;
-  onSave: (updatedBookmark: Bookmark) => void;
+  onSave: (newBookmark: Omit<Bookmark, 'id'>, groupId: string, spaceId: string) => void;
+  groupId: string;
+  spaceId: string;
   theme: 'light' | 'dark';
 }
 
-export function BookmarkEditModal({ bookmark, onClose, onSave, theme }: BookmarkEditModalProps) {
-  const [title, setTitle] = useState(bookmark.title);
-  const [url, setUrl] = useState(bookmark.url);
+export function CreateBookmarkModal({ onClose, onSave, groupId, spaceId, theme }: CreateBookmarkModalProps) {
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const titleInputRef = useRef<HTMLInputElement>(null);
 
@@ -34,10 +35,10 @@ export function BookmarkEditModal({ bookmark, onClose, onSave, theme }: Bookmark
     try {
       new URL(url);
       onSave({
-        ...bookmark,
         title,
         url,
-      });
+        createdAt: new Date().toISOString(),
+      }, groupId, spaceId);
       setError('');
       onClose();
     } catch (e) {
@@ -58,7 +59,7 @@ export function BookmarkEditModal({ bookmark, onClose, onSave, theme }: Bookmark
       <div className={`rounded-lg w-[500px] p-6 ${darkTheme ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="flex items-center justify-between mb-6">
           <h2 className={`text-xl font-semibold ${darkTheme ? 'text-white' : 'text-gray-900'}`}>
-            Edit Bookmark
+            Add Bookmark
           </h2>
           <button
             onClick={onClose}
@@ -112,7 +113,7 @@ export function BookmarkEditModal({ bookmark, onClose, onSave, theme }: Bookmark
               type="submit"
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
-              Save Changes
+              Add Bookmark
             </button>
           </div>
         </form>

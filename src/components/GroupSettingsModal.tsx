@@ -9,9 +9,10 @@ interface GroupSettingsModalProps {
   onSave: (updatedGroup: BookmarkGroup) => void;
   onDelete: () => void;
   groups: BookmarkGroup[];
+  theme: 'light' | 'dark';
 }
 
-export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups }: GroupSettingsModalProps) {
+export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups, theme }: GroupSettingsModalProps) {
   const [name, setName] = useState(group.name);
   const [color, setColor] = useState(group.color);
 
@@ -26,35 +27,65 @@ export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups }:
     }
   };
 
+  const handleDelete = () => {
+    // Close the modal first
+    onClose();
+    if (window.confirm('Are you sure you want to delete this group and all its bookmarks?')) {
+      onDelete();
+    }
+  };
+
   const isDeleteDisabled = groups?.length <= 1;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-[400px] p-6">
+      <div className={`w-[400px] p-6 rounded-lg relative ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      }`}>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Group Settings</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
+          <h2 className={`text-xl font-semibold ${
+            theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>
+            Group Settings
+          </h2>
+          <button
+            onClick={onClose}
+            className={`p-1 rounded-full ${
+              theme === 'dark'
+                ? 'hover:bg-gray-700 text-gray-400'
+                : 'hover:bg-gray-100 text-gray-500'
+            }`}
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${
+              theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+            }`}>
               Group Name
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                theme === 'dark'
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                  : 'border-gray-300 text-gray-900'
+              }`}
+              placeholder="Enter group name"
               maxLength={30}
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${
+              theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+            }`}>
               Group Color
             </label>
             <ColorPicker selectedColor={color} onColorSelect={setColor} />
@@ -64,18 +95,35 @@ export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups }:
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`px-4 py-2 rounded-lg ${
+                theme === 'dark'
+                  ? 'text-gray-300 hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
               Save Changes
             </button>
           </div>
         </form>
+
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={isDeleteDisabled}
+          className={`absolute bottom-4 left-4 p-2 rounded-full transition-colors ${
+            isDeleteDisabled
+              ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+              : 'bg-red-400 text-white hover:bg-red-500'
+          }`}
+        >
+          <Trash className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );

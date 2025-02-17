@@ -1,9 +1,11 @@
-import React from 'react';
-import { ChevronUp, ChevronDown, Trash2, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronUp, ChevronDown, Trash2, Settings, Plus } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import { BookmarkTile } from './BookmarkTile';
 import type { BookmarkGroup as BookmarkGroupType, Bookmark } from '../types';
 import toast from 'react-hot-toast';
+import { BookmarkEditModal } from './BookmarkEditModal';
+import { AddBookmarkModal } from './AddBookmarkModal';
 
 interface BookmarkGroupProps {
   group: BookmarkGroupType;
@@ -13,9 +15,11 @@ interface BookmarkGroupProps {
   onEditGroup: (group: BookmarkGroupType) => void;
   onUpdateGroup: (group: BookmarkGroupType) => void;
   onDeleteGroup: (groupId: string) => void;
+  onAddBookmark: (bookmark: Omit<Bookmark, 'id'>, groupId: string, spaceId: string) => void;
   isFirst: boolean;
   isLast: boolean;
   theme: 'light' | 'dark';
+  spaceId: string;
 }
 
 export function BookmarkGroup({
@@ -26,14 +30,19 @@ export function BookmarkGroup({
   onHandleMoveGroup,
   onEditGroup,
   onDeleteGroup,
+  onAddBookmark,
   isFirst,
   isLast,
   theme,
+  spaceId,
 }: BookmarkGroupProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: group.id,
     data: { type: 'group', group },
   });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Convert hex to rgba for background
   const hexToRgba = (hex: string, alpha: number) => {
@@ -55,14 +64,11 @@ export function BookmarkGroup({
       [reorderedBookmarks[index], reorderedBookmarks[newIndex]] =
         [reorderedBookmarks[newIndex], reorderedBookmarks[index]];
 
-
       // update the group with the new bookmark order
       onUpdateGroup({
         ...group,
         bookmarks: reorderedBookmarks,
       });
-
-
 
       toast.success(`Bookmark moved ${direction}`, {
         style: {
@@ -71,6 +77,15 @@ export function BookmarkGroup({
         },
       });
     }
+  };
+
+  const handleAddBookmark = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleSaveBookmark = (bookmark: Omit<Bookmark, 'id'>, groupId: string, spaceId: string) => {
+    onAddBookmark(bookmark, groupId, spaceId);
+    setIsAddModalOpen(false);
   };
 
   return (
@@ -120,8 +135,14 @@ export function BookmarkGroup({
             title="Move group right">
             <ChevronDown className="w-4 h-4" />
           </button>
-
-
+					<button
+            onClick={handleAddBookmark}
+            className={`p-1.5 rounded-full hover:bg-white/10 ${theme === 'dark' ? 'text-gray-400 hover:text-green-400' : 'text-gray-500 hover:text-green-600'
+              }`}
+            title="Add bookmark"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
           <button
             onClick={() => onEditGroup(group)}
             className={`p-1.5 rounded-full hover:bg-white/10 ${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-600'
@@ -138,6 +159,7 @@ export function BookmarkGroup({
           >
             <Trash2 className="w-4 h-4" />
           </button>
+
         </div>
       </div>
 
@@ -169,6 +191,24 @@ export function BookmarkGroup({
           </div>
         )}
       </div>
+
+      {isModalOpen && (
+        <BookmarkEditModal
+          bookmark={newBookmark}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveBookmark}
+        />
+      )}
+
+      {isAddModalOpen && (
+        <AddBookmarkModal
+          onClose={() => setIsAddModalOpen(false)}
+          onSave={handleSaveBookmark}
+          groupId={group.id}
+          spaceId={spaceId}
+          theme={theme}
+        />
+      )}
     </div>
   );
 }

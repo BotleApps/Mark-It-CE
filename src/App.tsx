@@ -197,6 +197,8 @@ function App() {
                   isFirst={index === 0}
                   isLast={index === filteredGroups.length - 1}
                   theme={settings.theme}
+                  spaceId={activeSpace.id}
+                  onAddBookmark={handleAddBookmark}
                 />
               ))}
             </div>

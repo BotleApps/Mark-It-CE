@@ -185,6 +185,11 @@ export function useBookmarks() {
   }, [spaces]);
 
   const handleAddBookmark = useCallback(async (spaceId: string, groupId: string, bookmark: Omit<Bookmark, 'id'>) => {
+    console.log('useBookmarks: handleAddBookmark called');
+    console.log('useBookmarks: spaceId', spaceId);
+    console.log('useBookmarks: groupId', groupId);
+    console.log('useBookmark: bookmark', bookmark);
+
     const newBookmark: Bookmark = {
       ...bookmark,
       id: generateUniqueId('bookmark'),
@@ -272,14 +277,14 @@ export function useBookmarks() {
       console.warn('Chrome bookmarks API not available');
       return;
     }
-  
+
     try {
       const newGroups: BookmarkGroup[] = [];
       // Map to track processed folders using Chrome bookmark ID as key
       const processedFolders = new Map<string, string>();
-  
+
       const traverseBookmarks = async (
-        node: chrome.bookmarks.BookmarkTreeNode, 
+        node: chrome.bookmarks.BookmarkTreeNode,
         parentGroupId: string | null = null
       ) => {
         if (node.url) {
@@ -296,7 +301,7 @@ export function useBookmarks() {
         } else if (node.children) {
           // Check if this folder was already processed
           let groupId = processedFolders.get(node.id);
-  
+
           if (!groupId) {
             // Create new group only if it hasn't been processed
             groupId = generateUniqueId('group');
@@ -310,14 +315,14 @@ export function useBookmarks() {
             newGroups.push(newGroup);
             processedFolders.set(node.id, groupId);
           }
-  
+
           // Process children
           for (const child of node.children) {
             await traverseBookmarks(child, groupId);
           }
         }
       };
-  
+
       // Process selected folders
       for (const folderId of folderIds) {
         // Skip if already processed
@@ -328,14 +333,14 @@ export function useBookmarks() {
           }
         }
       }
-  
+
       // Update spaces with unique groups
       const newSpaces = spaces.map(space =>
         space.id === spaceId
           ? { ...space, groups: [...space.groups, ...newGroups] }
           : space
       );
-  
+
       setSpaces(newSpaces);
       if (typeof chrome !== 'undefined' && chrome.storage) {
         await chrome.storage.local.set({ spaces: newSpaces });
