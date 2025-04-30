@@ -4,6 +4,7 @@ import type { AppSettings } from '../types';
 const defaultSettings: AppSettings = {
   theme: 'light',
   hasCompletedSetup: false,
+  rightPanelCollapsed: false,
 };
 
 export function useSettings() {
@@ -49,10 +50,19 @@ export function useSettings() {
     }
   };
 
+  const handleRightPanelCollapse = async (rightPanelCollapsed: boolean) => {
+    const newSettings = { ...settings, rightPanelCollapsed };
+    setSettings(newSettings);
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      await chrome.storage.local.set({ settings: newSettings });
+    }
+  }
+
   return {
     settings,
     isThemeChanging,
     handleUpdateSettings,
     handleCompleteSetup,
+    handleRightPanelCollapse,
   };
 }

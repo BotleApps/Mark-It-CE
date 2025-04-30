@@ -29,6 +29,7 @@ export interface OpenTab {
 export interface AppSettings {
   theme: 'light' | 'dark';
   hasCompletedSetup: boolean;
+  rightPanelCollapsed: boolean;
 }
 
 export interface BookmarkExport {
