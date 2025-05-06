@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Plus, Settings as SettingsIcon } from 'lucide-react';
+import { Search, Plus, Settings as SettingsIcon, ArrowLeftToLine, ArrowRightToLine } from 'lucide-react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { Toaster } from 'react-hot-toast';
 import { DragProvider } from './contexts/DragContext';
@@ -29,6 +29,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isImportingBookmarks, setIsImportingBookmarks] = useState(false);
   const [editingSpace, setEditingSpace] = useState<Space | null>(null);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState<boolean>(false);
 
   const {
     spaces,
@@ -63,6 +64,7 @@ function App() {
     isThemeChanging,
     handleUpdateSettings,
     handleCompleteSetup,
+    handleRightPanelCollapse,
   } = useSettings();
 
   const dragHandlers = useDragHandlers(
@@ -115,6 +117,16 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    setRightPanelCollapsed(settings.rightPanelCollapsed);
+  }, [settings.rightPanelCollapsed]);
+
+  const toggleRightPanel = () => {
+    setRightPanelCollapsed((rightPanelCollapsed) => {
+      handleRightPanelCollapse(!rightPanelCollapsed);
+      return !rightPanelCollapsed;
+    });
+  }
 
   return (
     <DndContext
@@ -206,25 +218,53 @@ function App() {
           </div>
 
           {/* Right Panel: Open Tabs */}
-          <div className="w-80 flex-shrink-0 flex flex-col overflow-y-auto">
-            <p className={`mb-2 text-sm p-2 rounded-md border ${settings.theme === 'dark'
-              ? 'bg-blue-900/50 border-blue-500/50 text-blue-300'
-              : 'bg-blue-50 border-blue-200 text-blue-700'
-              }`}>
-              Drag and drop tabs onto a group or over and click on + button to bookmark them.
-            </p>
-            <h2 className={`text-lg font-bold mb-4 ${settings.theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              Open Tabs
-            </h2>
-            <div className="open-tabs-container overflow-y-auto" style={{ maxHeight: '85vh' }}>
-            <OpenTabsList
-              tabs={openTabs}
-              groups={activeSpace.groups}
-              onBookmarkTab={handleBookmarkTab}
-              theme={settings.theme}
-            />
-            </div>
-          </div>
+          {
+            rightPanelCollapsed ?
+                <div className="flex items-start">
+                  <button
+                      onClick={toggleRightPanel}
+                      className={`p-2 rounded-full transition-colors ${
+                          settings.theme === 'dark'
+                              ? 'bg-gray-800 text-gray-400 hover:text-blue-400'
+                              : 'bg-gray-100 text-gray-600 hover:text-blue-600'
+                      }`}
+                  >
+                    <ArrowLeftToLine className="w-4 h-4" />
+                  </button>
+                </div>
+                :
+                <div className="w-80 flex-shrink-0 flex flex-col overflow-y-auto">
+                  <p className={`mb-2 text-sm p-2 rounded-md border ${settings.theme === 'dark'
+                      ? 'bg-blue-900/50 border-blue-500/50 text-blue-300'
+                      : 'bg-blue-50 border-blue-200 text-blue-700'
+                  }`}>
+                    Drag and drop tabs onto a group or over and click on + button to bookmark them.
+                  </p>
+                  <div className="flex flex-row">
+                    <h2 className={`text-lg font-bold mb-4 ${settings.theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      Open Tabs
+                    </h2>
+                    <button
+                        onClick={toggleRightPanel}
+                        className={`ml-auto p-2 rounded-full transition-colors mb-4 ${
+                            settings.theme === 'dark'
+                                ? 'bg-gray-800 text-gray-400 hover:text-blue-400'
+                                : 'bg-gray-100 text-gray-600 hover:text-blue-600'
+                        }`}
+                    >
+                      <ArrowRightToLine className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="open-tabs-container overflow-y-auto" style={{ maxHeight: '85vh' }}>
+                    <OpenTabsList
+                        tabs={openTabs}
+                        groups={activeSpace.groups}
+                        onBookmarkTab={handleBookmarkTab}
+                        theme={settings.theme}
+                    />
+                  </div>
+                </div>
+          }
         </div>
 
         <Toaster
