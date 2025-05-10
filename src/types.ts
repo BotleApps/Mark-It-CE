@@ -26,10 +26,16 @@ export interface OpenTab {
   url: string;
 }
 
+export enum LinkTarget {
+  NEW = '_blank',
+  CURRENT = '_self',
+}
+
 export interface AppSettings {
   theme: 'light' | 'dark';
   hasCompletedSetup: boolean;
   rightPanelCollapsed: boolean;
+  linkTarget:  LinkTarget;
 }
 
 export interface BookmarkExport {
