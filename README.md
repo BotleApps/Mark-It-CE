@@ -149,3 +149,13 @@ This project is licensed under the **MIT License**. See [LICENSE](https://github
 
 Happy Bookmarking! 🎉
 
+## 🙏 Acknowledgements
+
+A big thank you to all our contributors for their valuable support and contributions! 💖
+
+### 🚀 Contributors
+
+- [@sivakumarvemula](https://github.com/sivakumarvemula) – Siva Kumar Vemula  
+- [@vishnuvardhan-s](https://github.com/vishnuvardhan-s) – Vishnuvardhan S
+
+Your efforts make this project better every day. Thank you! 🎉
