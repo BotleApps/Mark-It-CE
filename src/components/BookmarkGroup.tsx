@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronUp, ChevronDown, Trash2, Settings, Plus } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import { BookmarkTile } from './BookmarkTile';
-import type { BookmarkGroup as BookmarkGroupType, Bookmark } from '../types';
+import type { BookmarkGroup as BookmarkGroupType, Bookmark, LinkTarget } from '../types';
 import toast from 'react-hot-toast';
 import { BookmarkEditModal } from './BookmarkEditModal';
 import { AddBookmarkModal } from './AddBookmarkModal';
@@ -19,6 +19,7 @@ interface BookmarkGroupProps {
   isFirst: boolean;
   isLast: boolean;
   theme: 'light' | 'dark';
+  linkTarget: LinkTarget;
   spaceId: string;
 }
 
@@ -34,6 +35,7 @@ export function BookmarkGroup({
   isFirst,
   isLast,
   theme,
+  linkTarget,
   spaceId,
 }: BookmarkGroupProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -186,6 +188,7 @@ export function BookmarkGroup({
                 isFirst={index === 0}
                 isLast={index === group.bookmarks.length - 1}
                 theme={theme}
+                linkTarget={linkTarget}
               />
             ))}
           </div>

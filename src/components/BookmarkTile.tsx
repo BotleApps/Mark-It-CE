@@ -1,6 +1,6 @@
 import React from 'react';
 import { Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Bookmark } from '../types';
+import type { Bookmark, LinkTarget } from '../types';
 
 interface BookmarkTileProps {
   bookmark: Bookmark;
@@ -11,6 +11,7 @@ interface BookmarkTileProps {
   isFirst: boolean;
   isLast: boolean;
   theme: 'light' | 'dark';
+  linkTarget: LinkTarget;
 }
 
 export function BookmarkTile({
@@ -21,7 +22,8 @@ export function BookmarkTile({
   onMove,
   isFirst,
   isLast,
-  theme
+  theme,
+  linkTarget
 }: BookmarkTileProps) {
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -33,7 +35,7 @@ export function BookmarkTile({
   const handleTileClick = (e: React.MouseEvent) => {
     // Ensure the click is on the tile itself or within the bookmark content
     if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.bookmark-content')) {
-      window.open(bookmark.url, '_blank', 'noopener,noreferrer');
+      window.open(bookmark.url, linkTarget, 'noopener,noreferrer');
     }
   };
 
