@@ -159,7 +159,7 @@ export function SettingsModal({
                 <span className={`text-sm font-medium ${
                   theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
                 }`}>
-                  Link Preference
+                  Open bookmarks in
                 </span>
                 <div className={`inline-flex overflow-hidden border hover:border-blue-500 rounded-lg text-sm font-medium ${
                   theme === 'dark' ? "border-gray-600" : "border-gray-300"
