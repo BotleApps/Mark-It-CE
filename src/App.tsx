@@ -220,7 +220,7 @@ function App() {
           {/* Right Panel: Open Tabs */}
           {
             rightPanelCollapsed ?
-                <div className="flex items-start">
+                <div className="flex flex-col items-start">
                   <button
                       onClick={toggleRightPanel}
                       className={`p-2 rounded-full transition-colors ${
@@ -231,6 +231,14 @@ function App() {
                   >
                     <ArrowLeftToLine className="w-4 h-4" />
                   </button>
+                  <p
+                    onClick={toggleRightPanel}
+                    className={`mt-1 p-1 text-base cursor-pointer [writing-mode:vertical-lr] ${
+                      settings.theme === "dark"
+                          ? 'text-gray-400'
+                          : 'text-gray-600'}`
+                    }> Open Tabs ({openTabs.length})
+                  </p>
                 </div>
                 :
                 <div className="w-80 flex-shrink-0 flex flex-col overflow-y-auto">
