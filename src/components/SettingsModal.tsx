@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Moon, Sun, Download, Upload, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { AppSettings, BookmarkExport } from '../types';
+import { LinkTarget, type AppSettings, type BookmarkExport } from '../types';
 
 interface SettingsModalProps {
   settings: AppSettings;
@@ -51,6 +51,10 @@ export function SettingsModal({
       setIsThemeButtonChanging(false);
     }, 300);
   };
+
+  const handleLinkTargetToggle = (linkTarget: LinkTarget) => {
+    setCurrentSettings((currentSettings) => ({...currentSettings, linkTarget}));
+  }
 
   const handleImportClick = () => {
     setShowImportOptions(true);
@@ -145,6 +149,48 @@ export function SettingsModal({
                     <Moon className="w-5 h-5" />
                   )}
                 </button>
+              </label>
+            </div>
+
+            <div className={`border-t pt-6 ${
+              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+            }`}>
+              <label className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${
+                  theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
+                }`}>
+                  Open bookmarks in
+                </span>
+                <div className={`inline-flex overflow-hidden border hover:border-blue-500 rounded-lg text-sm font-medium ${
+                  theme === 'dark' ? "border-gray-600" : "border-gray-300"
+                }`}>
+                  <button
+                    type="button"
+                    onClick={() => handleLinkTargetToggle(LinkTarget.NEW)}
+                    className={`px-4 py-2 ${
+                      currentSettings.linkTarget === LinkTarget.NEW
+                        ? "bg-blue-500 text-white"
+                        : settings.theme === "dark"
+                          ? "text-gray-200"
+                          : "bg-white text-gray-700"
+                    }`}
+                  >
+                    New Tab
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleLinkTargetToggle(LinkTarget.CURRENT)}
+                    className={`px-4 py-2 ${
+                      currentSettings.linkTarget === LinkTarget.CURRENT
+                        ? "bg-blue-500 text-white"
+                        : settings.theme === "dark"
+                          ? "text-gray-200"
+                          : "bg-white text-gray-700"
+                    }`}
+                  >
+                    Current Tab
+                  </button>
+                </div>
               </label>
             </div>
 

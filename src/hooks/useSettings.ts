@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import type { AppSettings } from '../types';
+import { LinkTarget, type AppSettings } from '../types';
 
 const defaultSettings: AppSettings = {
   theme: 'light',
   hasCompletedSetup: false,
   rightPanelCollapsed: false,
+  linkTarget: LinkTarget.NEW,
 };
 
 export function useSettings() {
