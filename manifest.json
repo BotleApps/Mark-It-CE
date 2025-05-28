@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mark it - Memory Manager",
   "short_name": "Mark It",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Boost your productivity with Mark It, a modern memory manager for Chrome. Save and organize your bookmarks easily",
   "permissions": [
     "bookmarks",

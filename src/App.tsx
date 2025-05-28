@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Settings as SettingsIcon, ArrowLeftToLine, ArrowRightToLine } from 'lucide-react';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { Toaster } from 'react-hot-toast';
@@ -134,7 +134,6 @@ function App() {
       onDragOver={dragHandlers.handleDragOver}
       onDragEnd={dragHandlers.handleDragEnd}
       collisionDetection={closestCenter}
-      style={{ zIndex: 200 }} // Higher z-index for DndContext
     >
       <MainLayout
         spaces={spaces}
@@ -211,7 +210,7 @@ function App() {
                   theme={settings.theme}
                   linkTarget={settings.linkTarget}
                   spaceId={activeSpace.id}
-                  onAddBookmark={handleAddBookmark}
+                  onAddBookmark={(bookmark, groupId, spaceId) => handleAddBookmark(spaceId, groupId, bookmark)}
                 />
               ))}
             </div>
@@ -317,7 +316,7 @@ function App() {
               setIsSettingsOpen(false);
               setIsImportingBookmarks(true);
             }}
-            onExportBookmarks={handleExportBookmarks}
+            onExportBookmarks={() => handleExportBookmarks(settings)}
             handleImportBookmarksFromFile={handleImportBookmarksFromFile}
             theme={settings.theme}
             isThemeChanging={isThemeChanging}
@@ -368,6 +367,11 @@ function App() {
               await handleUpdateGroup(activeSpace.id, updatedGroup);
               setEditingGroup(null);
             }}
+            onDelete={() => {
+              handleDeleteGroup(activeSpace.id, editingGroup.id);
+              setEditingGroup(null);
+            }}
+            groups={activeSpace.groups}
             theme={settings.theme}
           />
         )}

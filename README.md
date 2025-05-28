@@ -112,11 +112,25 @@ For issues or feature requests, visit our [Issue Tracker](https://github.com/Bot
 
 ## 🔄 Release Notes
 
-### **v1.0.2** *(Latest)*
+### **v1.0.3** *(Latest)*
+
+✅ **New Features:**
+
+- Collapsable side panel – Collapse the open tabs side panel to save screen space and focus on your main content.
+- Bookmark tab settings – Now choose whether to open bookmarks in a new tab or existing tab.  
+  Tip: Go to the settings menu, and select your preferred option (New Tab or Existing Tab) from the dropdown.
+
+  Thanks to [@vishnuvardhan-s](https://github.com/vishnuvardhan-s) – Vishnuvardhan S
 
 🐞 **Bug Fixes:**
 
-- Import for Chrome Bookmarks issue fix
+- Fixed an issue where importing bookmarks from a file would overwrite existing bookmarks
+
+### **v1.0.2**
+
+🐞 **Bug Fixes:**
+
+- Import from Chrome Bookmarks issue fix
 - UX - Text & space size fixes
 
 ### **v1.0.1**

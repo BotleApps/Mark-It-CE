@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import type { Space, BookmarkGroup, Bookmark, BookmarkExport } from '../types';
+import type { Space, BookmarkGroup, Bookmark, BookmarkExport, AppSettings } from '../types';
 
 const defaultGroup: BookmarkGroup = {
   id: 'default',
@@ -398,12 +398,83 @@ export function useBookmarks() {
         }
       }
 
-      setSpaces(importData.spaces);
-      if (typeof chrome !== 'undefined' && chrome.storage) {
-        await chrome.storage.local.set({ spaces: importData.spaces });
+      // Merge imported spaces with existing ones instead of replacing
+      const mergedSpaces = [...spaces];
+      
+      for (const importedSpace of importData.spaces) {
+        const existingSpaceIndex = mergedSpaces.findIndex(space => space.id === importedSpace.id);
+        
+        if (existingSpaceIndex !== -1) {
+          // Space exists, merge groups
+          const existingSpace = mergedSpaces[existingSpaceIndex];
+          const mergedGroups = [...existingSpace.groups];
+          
+          for (const importedGroup of importedSpace.groups) {
+            const existingGroupIndex = mergedGroups.findIndex(group => group.id === importedGroup.id);
+            
+            if (existingGroupIndex !== -1) {
+              // Group exists, merge bookmarks
+              const existingGroup = mergedGroups[existingGroupIndex];
+              const mergedBookmarks = [...existingGroup.bookmarks];
+              
+              for (const importedBookmark of importedGroup.bookmarks) {
+                // Only add if bookmark with same URL doesn't already exist in this group
+                const bookmarkExists = mergedBookmarks.some(bookmark => bookmark.url === importedBookmark.url);
+                if (!bookmarkExists) {
+                  // Generate new ID to avoid conflicts
+                  mergedBookmarks.push({
+                    ...importedBookmark,
+                    id: generateUniqueId('bookmark')
+                  });
+                }
+              }
+              
+              mergedGroups[existingGroupIndex] = {
+                ...existingGroup,
+                bookmarks: mergedBookmarks
+              };
+            } else {
+              // Group doesn't exist, add it with new IDs for all bookmarks
+              const newGroup = {
+                ...importedGroup,
+                id: generateUniqueId('group'),
+                bookmarks: importedGroup.bookmarks.map(bookmark => ({
+                  ...bookmark,
+                  id: generateUniqueId('bookmark')
+                }))
+              };
+              mergedGroups.push(newGroup);
+            }
+          }
+          
+          mergedSpaces[existingSpaceIndex] = {
+            ...existingSpace,
+            groups: mergedGroups
+          };
+        } else {
+          // Space doesn't exist, add it with new IDs
+          const newSpace = {
+            ...importedSpace,
+            id: generateUniqueId('space'),
+            groups: importedSpace.groups.map(group => ({
+              ...group,
+              id: generateUniqueId('group'),
+              bookmarks: group.bookmarks.map(bookmark => ({
+                ...bookmark,
+                id: generateUniqueId('bookmark')
+              }))
+            }))
+          };
+          mergedSpaces.push(newSpace);
+        }
       }
 
-      toast.success('Bookmarks imported successfully');
+      setSpaces(mergedSpaces);
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        await chrome.storage.local.set({ spaces: mergedSpaces });
+      }
+
+      toast.success('Bookmarks imported and merged successfully');
     } catch (error) {
       console.error('Error importing bookmarks from file:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to import bookmarks');
@@ -411,11 +482,12 @@ export function useBookmarks() {
     }
   };
 
-  const handleExportBookmarks = async (): Promise<void> => {
+  const handleExportBookmarks = async (settings: AppSettings): Promise<void> => {
     try {
       const exportData: BookmarkExport = {
         version: '1.0',
         spaces,
+        settings,
         exportDate: new Date().toISOString()
       };
 
