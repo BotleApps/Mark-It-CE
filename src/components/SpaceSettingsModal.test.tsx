@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react'; // Removed waitFor
 import userEvent from '@testing-library/user-event';
 import { SpaceSettingsModal } from './SpaceSettingsModal'; // Adjust path as needed
 import type { Space } from '../types'; // Adjust path as needed
@@ -52,8 +52,9 @@ describe('SpaceSettingsModal Component', () => {
     expect(screen.getByDisplayValue(mockEditingSpace.name)).toBeInTheDocument();
     expect(screen.getByLabelText('Space Color')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(screen.getByRole('button').querySelector('svg.lucide-trash')).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null);
+    expect(deleteButton).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
@@ -107,9 +108,8 @@ describe('SpaceSettingsModal Component', () => {
     // const user = userEvent.setup(); // Not needed if only using fireEvent for form
     render(<SpaceSettingsModal {...defaultProps} />);
     const nameInput = screen.getByLabelText('Space Name') as HTMLInputElement;
-    const saveButton = screen.getByRole('button', { name: 'Save Changes' });
-    // eslint-disable-next-line testing-library/no-node-access
-    const formElement = saveButton.closest('form')!;
+    // const saveButton = screen.getByRole('button', { name: 'Save Changes' }); // Not directly used for submit
+    const formElement = screen.getByRole('form'); // Get form by its implicit role
 
     // Clear input using fireEvent as userEvent.clear might be slow or focus dependent here
     fireEvent.change(nameInput, { target: { value: '' } });
@@ -170,8 +170,8 @@ describe('SpaceSettingsModal Component', () => {
   test('Delete Space button calls onClose then onDelete after confirmation', async () => {
     const user = userEvent.setup();
     render(<SpaceSettingsModal {...defaultProps} />);
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
 
     await user.click(deleteButton);
 
@@ -184,8 +184,8 @@ describe('SpaceSettingsModal Component', () => {
     const user = userEvent.setup();
     confirmSpy.mockImplementationOnce(() => false);
     render(<SpaceSettingsModal {...defaultProps} />);
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
 
     await user.click(deleteButton);
 
@@ -196,15 +196,15 @@ describe('SpaceSettingsModal Component', () => {
 
   test('Delete Space button is disabled if only one space exists', () => {
     render(<SpaceSettingsModal {...defaultProps} spaces={mockSingleSpaceList} />);
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
     expect(deleteButton).toBeDisabled();
   });
 
   test('Delete Space button is enabled if more than one space exists', () => {
     render(<SpaceSettingsModal {...defaultProps} spaces={mockOtherSpaces} />);
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
     expect(deleteButton).not.toBeDisabled();
   });
 
@@ -218,9 +218,10 @@ describe('SpaceSettingsModal Component', () => {
 
   test('Clicking the backdrop calls onClose', async () => {
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
-    const backdrop = screen.getByText('Space Settings').closest('div.fixed.inset-0');
+    const { container } = render(<SpaceSettingsModal {...defaultProps} />);
+    const backdrop = container.firstChild as HTMLElement;
     expect(backdrop).toBeInTheDocument();
+    expect(backdrop).toHaveClass('fixed', 'inset-0'); // Verify it's likely the backdrop
     if (backdrop) await user.click(backdrop); // userEvent for potential overlay interactions
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });

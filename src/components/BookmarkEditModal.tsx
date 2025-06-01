@@ -21,8 +21,9 @@ export function BookmarkEditModal({ bookmark, onClose, onSave, theme }: Bookmark
     }
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleSubmit = (_e: React.SyntheticEvent) => { // Changed e to _e and type
+    _e.preventDefault();
     if (!title.trim()) {
       setError('Title is required.');
       return;
@@ -47,7 +48,7 @@ export function BookmarkEditModal({ bookmark, onClose, onSave, theme }: Bookmark
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSubmit(e as any); // Type assertion to React.FormEvent
+      handleSubmit(e); // Removed 'as any'
     }
   };
 

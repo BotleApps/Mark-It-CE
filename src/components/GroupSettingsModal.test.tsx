@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react'; // Removed waitFor
 import userEvent from '@testing-library/user-event';
 import { GroupSettingsModal } from './GroupSettingsModal'; // Adjust path as needed
 import type { BookmarkGroup } from '../types'; // Adjust path as needed
@@ -56,8 +56,10 @@ describe('GroupSettingsModal Component', () => {
     expect(screen.getByDisplayValue(mockEditingGroup.name)).toBeInTheDocument();
     expect(screen.getByLabelText('Group Color')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
-    // Delete button is identified by its icon/contents, assuming Trash icon is present
-    expect(screen.getByRole('button').querySelector('svg.lucide-trash')).toBeInTheDocument();
+    // Find delete button by looking for a button that contains a Trash icon
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null);
+    expect(deleteButton).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
@@ -118,8 +120,8 @@ describe('GroupSettingsModal Component', () => {
     const user = userEvent.setup();
     render(<GroupSettingsModal {...defaultProps} />);
     const nameInput = screen.getByLabelText('Group Name');
-    const saveButton = screen.getByRole('button', { name: 'Save Changes' });
-    const formElement = saveButton.closest('form');
+    // const saveButton = screen.getByRole('button', { name: 'Save Changes' }); // Not directly used for submit event
+    const formElement = screen.getByRole('form'); // Get form by its implicit role
 
 
     await user.clear(nameInput);
@@ -188,8 +190,8 @@ describe('GroupSettingsModal Component', () => {
   test('Delete Group button calls onClose then onDelete after confirmation', async () => {
     const user = userEvent.setup();
     render(<GroupSettingsModal {...defaultProps} />);
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
 
     await user.click(deleteButton);
 
@@ -205,8 +207,8 @@ describe('GroupSettingsModal Component', () => {
     const user = userEvent.setup();
     confirmSpy.mockImplementationOnce(() => false); // Simulate user cancelling confirmation
     render(<GroupSettingsModal {...defaultProps} />);
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
 
 
     await user.click(deleteButton);
@@ -218,15 +220,15 @@ describe('GroupSettingsModal Component', () => {
 
   test('Delete Group button is disabled if only one group exists', () => {
     render(<GroupSettingsModal {...defaultProps} groups={mockSingleGroupList} />);
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
     expect(deleteButton).toBeDisabled();
   });
 
   test('Delete Group button is enabled if more than one group exists', () => {
     render(<GroupSettingsModal {...defaultProps} groups={mockOtherGroups} />); // mockOtherGroups has 3 groups
-    // eslint-disable-next-line testing-library/no-node-access
-    const deleteButton = screen.getByRole('button').querySelector('svg.lucide-trash')!.closest('button')!;
+    const buttons = screen.getAllByRole('button');
+    const deleteButton = buttons.find(button => button.querySelector('svg.lucide-trash') !== null)!;
     expect(deleteButton).not.toBeDisabled();
   });
 
@@ -241,9 +243,10 @@ describe('GroupSettingsModal Component', () => {
 
   test('Clicking the backdrop calls onClose', async () => {
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
-    const backdrop = screen.getByText('Group Settings').closest('div.fixed.inset-0');
+    const { container } = render(<GroupSettingsModal {...defaultProps} />);
+    const backdrop = container.firstChild as HTMLElement;
     expect(backdrop).toBeInTheDocument();
+    expect(backdrop).toHaveClass('fixed', 'inset-0'); // Verify it's likely the backdrop
     if (backdrop) await user.click(backdrop);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });

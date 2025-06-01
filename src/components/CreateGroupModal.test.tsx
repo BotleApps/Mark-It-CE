@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreateGroupModal } from './CreateGroupModal'; // Adjust path as needed
-import type { BookmarkGroup } from '../types'; // Adjust path as needed
+// Removed unused BookmarkGroup type import
 
 describe('CreateGroupModal Component', () => {
   let mockOnClose: jest.Mock;
@@ -87,10 +87,10 @@ describe('CreateGroupModal Component', () => {
   // should be done in its own dedicated test file (e.g., ColorPicker.test.tsx).
 
   test('Create Group button does not call onSave if group name is empty', async () => {
-    const user = userEvent.setup();
+    // const user = userEvent.setup(); // user is not used in this test
     render(<CreateGroupModal {...defaultProps} />);
-    const createButton = screen.getByRole('button', { name: 'Create Group' });
-    const formElement = screen.getByRole('button', { name: 'Create Group' }).closest('form');
+    // const createButton = screen.getByRole('button', { name: 'Create Group' }); // createButton is not used
+    const formElement = screen.getByRole('form'); // Get form by its implicit role
 
     // Try submitting form directly (simulates button click on valid form)
     // or clicking the button. Since button isn't disabled, we check onSave.
@@ -152,11 +152,12 @@ describe('CreateGroupModal Component', () => {
 
   test('Clicking the backdrop calls onClose', async () => {
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
+    const { container } = render(<CreateGroupModal {...defaultProps} />);
 
     // The outermost div is the backdrop
-    const backdropElement = screen.getByText('Create New Group').closest('div.fixed.inset-0');
+    const backdropElement = container.firstChild as HTMLElement;
     expect(backdropElement).toBeInTheDocument();
+    expect(backdropElement).toHaveClass('fixed', 'inset-0'); // Verify it's likely the backdrop
 
     await user.click(backdropElement!);
     expect(mockOnClose).toHaveBeenCalledTimes(1);

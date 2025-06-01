@@ -249,7 +249,7 @@ describe('BookmarkEditModal Component', () => {
   test('title input is focused on mount', async () => {
     render(<BookmarkEditModal {...defaultProps} />);
     const titleInput = screen.getByLabelText('Title');
-    await waitFor(() => expect(document.activeElement).toBe(titleInput));
+    await waitFor(() => expect(titleInput).toHaveFocus());
   });
 
   test('Inputs have associated labels for accessibility', () => {

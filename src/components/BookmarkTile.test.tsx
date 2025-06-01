@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react'; // Removed fireEvent
 import userEvent from '@testing-library/user-event';
 import { BookmarkTile } from './BookmarkTile'; // Adjust path as needed
 import type { Bookmark, LinkTarget } from '../types'; // Adjust path as needed
@@ -126,16 +126,14 @@ describe('BookmarkTile Component', () => {
   });
 
   test('renders with dark theme specific styles (basic check)', () => {
-    const { container } = render(<BookmarkTile {...defaultProps} theme="dark" />);
-    // This is a basic check. More specific checks would depend on actual class names for dark theme.
-    // For example, if the main div gets a specific class:
-    // eslint-disable-next-line testing-library/no-node-access
-    const tileDiv = container.querySelector('div.group');
-    // Example: expect(tileDiv).toHaveClass('dark-theme-specific-class');
-    // For now, we just ensure it renders without error and contains the title.
+    render(<BookmarkTile {...defaultProps} theme="dark" />);
+    // This test primarily ensures the component renders without crashing when theme="dark".
+    // Specific style/class assertions would require knowledge of theme implementation details
+    // or adding specific data-testid attributes for theme-dependent root elements.
     expect(screen.getByText(mockBookmark.title)).toBeInTheDocument();
-    // Check for a class that indicates dark theme, if known
-    // e.g. expect(tileDiv).toHaveClass('border-gray-700'); // from component code
+    // If specific dark theme classes were applied to the root 'div.group', one might test:
+    // const tileRoot = screen.getByText(mockBookmark.title).closest('div.group');
+    // expect(tileRoot).toHaveClass('expected-dark-theme-class');
   });
 
   test('action buttons stop propagation of click events', async () => {

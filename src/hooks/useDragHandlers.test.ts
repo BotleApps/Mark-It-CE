@@ -253,7 +253,7 @@ describe('useDragHandlers Hook', () => {
         await act(async () => {
           await result.current.handleDragEnd(event);
         });
-      } catch (e) {
+      } catch (_e) { // Renamed e to _e
         // Expected error
       }
 

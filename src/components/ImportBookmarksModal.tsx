@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { X, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
 import type { ChromeBookmarkFolder } from '../types';
 
@@ -75,12 +75,13 @@ export function ImportBookmarksModal({ onClose, onImport, theme }: ImportBookmar
       ]);
       setLoading(false);
     }
-  }, []);
+  }, [getSubfolders]); // Added getSubfolders
 
-  const getSubfolders = async (node: chrome.bookmarks.BookmarkTreeNode, level: number): Promise<FolderNode[]> => {
+  const getSubfolders = useCallback(async (node: chrome.bookmarks.BookmarkTreeNode, level: number): Promise<FolderNode[]> => {
     if (!node.children) return [];
 
     const folders = node.children.filter(child => !child.url);
+    // Recursive call to getSubfolders should refer to the memoized version.
     return Promise.all(folders.map(async folder => {
       const subfolders = await getSubfolders(folder, level + 1);
       return {
@@ -92,7 +93,7 @@ export function ImportBookmarksModal({ onClose, onImport, theme }: ImportBookmar
         selected: false
       };
     }));
-  };
+  }, []); // getSubfolders itself has no dependencies from this component's scope
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => 

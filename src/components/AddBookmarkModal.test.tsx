@@ -253,8 +253,7 @@ describe('AddBookmarkModal Component', () => {
   test('title input is focused on mount', async () => {
     render(<AddBookmarkModal {...defaultProps} />);
     const titleInput = screen.getByLabelText('Title');
-    // eslint-disable-next-line testing-library/no-node-access
-    await waitFor(() => expect(document.activeElement).toBe(titleInput));
+    await waitFor(() => expect(titleInput).toHaveFocus());
   });
 
   test('Inputs have associated labels for accessibility', () => {

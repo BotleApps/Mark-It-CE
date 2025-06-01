@@ -1,6 +1,31 @@
 import { act, renderHook } from '@testing-library/react';
 import { useBookmarks } from './useBookmarks'; // Assuming the hook is in this path
 
+// Define a minimal type for the parts of chrome API used in mocks
+type MockChrome = {
+  storage: {
+    local: {
+      get: jest.Mock;
+      set: jest.Mock;
+    };
+  };
+  bookmarks: {
+    getTree: jest.Mock;
+    getChildren: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+    removeTree: jest.Mock;
+    getSubTree?: jest.Mock; // Added getSubTree as it's used in later tests
+  };
+  runtime?: { // Optional runtime part if needed for other tests
+    onMessage?: {
+        addListener: jest.Mock;
+        removeListener: jest.Mock;
+    };
+    lastError?: chrome.runtime.LastError | undefined;
+  }
+};
+
 // Mock Chrome APIs
 global.chrome = {
   storage: {
@@ -15,17 +40,23 @@ global.chrome = {
     create: jest.fn(),
     update: jest.fn(),
     removeTree: jest.fn(),
+    getSubTree: jest.fn(), // Ensure getSubTree is part of the mock
   },
-  // Add other chrome APIs if needed and if they are used by the hook
-} as any;
+  runtime: { // Mock runtime for onMessage listeners if useBookmarks uses it
+    onMessage: {
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+    }
+  }
+} as MockChrome;
 
 // Mock for file operations (FileReader, URL.createObjectURL, etc.)
-// This is a basic mock, you might need to expand it based on actual usage
 global.FileReader = jest.fn(() => ({
   readAsText: jest.fn(),
-  onload: jest.fn(),
-  onerror: jest.fn(),
-})) as any;
+  onload: null, // onload should be assignable to ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null
+  onerror: null, // onerror should be assignable to ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null
+})) as jest.MockedClass<typeof FileReader>; // Use jest.MockedClass for constructor mocks
+
 global.URL.createObjectURL = jest.fn();
 global.URL.revokeObjectURL = jest.fn();
 
@@ -252,7 +283,7 @@ describe('useBookmarks Hook', () => {
 
     test('should create a new group in a space', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
 
       const newGroupData = { name: 'New Group', color: '#fedcba' };
@@ -279,7 +310,7 @@ describe('useBookmarks Hook', () => {
 
     test('should update an existing group', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       const updatedGroupData = { ...initialSpaces[0].groups[0], name: 'Updated Group Name' };
       await act(async () => {
@@ -300,7 +331,7 @@ describe('useBookmarks Hook', () => {
 
     test('should delete a group', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       await act(async () => {
         await result.current.handleDeleteGroup(initialSpaceId, 'g1');
@@ -322,7 +353,7 @@ describe('useBookmarks Hook', () => {
     test('should not delete a group if user cancels', async () => {
       (window.confirm as jest.Mock).mockReturnValueOnce(false); // Simulate user clicking "Cancel"
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       await act(async () => {
         await result.current.handleDeleteGroup(initialSpaceId, 'g1');
@@ -370,7 +401,7 @@ describe('useBookmarks Hook', () => {
 
     test('should add a new bookmark to a group', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       const newBookmarkData = { title: 'New Bookmark', url: 'https://new.example.com' };
       let createdBookmark;
@@ -388,7 +419,7 @@ describe('useBookmarks Hook', () => {
 
     test('should update an existing bookmark', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       const updatedBookmarkData = { id: initialBookmarkId, title: 'Updated Bookmark Title', url: 'https://updated.example.com', createdAt: initialSpaces[0].groups[0].bookmarks[0].createdAt };
       await act(async () => {
@@ -402,7 +433,7 @@ describe('useBookmarks Hook', () => {
 
     test('should delete a bookmark', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       await act(async () => {
         await result.current.handleDeleteBookmark(initialSpaceId, initialGroupId, initialBookmarkId);
@@ -417,7 +448,7 @@ describe('useBookmarks Hook', () => {
     test('should not delete a bookmark if user cancels', async () => {
       (window.confirm as jest.Mock).mockReturnValueOnce(false);
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       await act(async () => {
         await result.current.handleDeleteBookmark(initialSpaceId, initialGroupId, initialBookmarkId);
@@ -476,7 +507,7 @@ describe('useBookmarks Hook', () => {
 
     test('should import bookmarks from selected Chrome folders into a space', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       await act(async () => {
         await result.current.handleImportChromeBookmarks(['folder1', 'folder2'], targetSpaceId);
@@ -504,11 +535,11 @@ describe('useBookmarks Hook', () => {
 
     test('should do nothing if chrome.bookmarks API is not available', async () => {
       const originalChromeBookmarks = chrome.bookmarks;
-      // @ts-ignore
-      chrome.bookmarks = undefined; // Simulate API not being available
+      // @ts-expect-error // Simulate API not being available for this test
+      chrome.bookmarks = undefined;
 
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       await act(async () => {
         await result.current.handleImportChromeBookmarks(['folder1'], targetSpaceId);
@@ -541,7 +572,7 @@ describe('useBookmarks Hook', () => {
       });
       global.URL.createObjectURL = jest.fn(() => 'blob:http://localhost/mock-url');
       global.URL.revokeObjectURL = jest.fn();
-      // @ts-ignore
+      // @ts-expect-error // Mocking document.createElement for test
       global.document.createElement = jest.fn(() => ({
         href: '',
         download: '',
@@ -555,10 +586,10 @@ describe('useBookmarks Hook', () => {
 
     test('should export bookmarks to a file', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       await act(async () => {
-        // @ts-ignore
+        // @ts-expect-error // settings prop is AppSettings, handleExportBookmarks expects AppSettings
         await result.current.handleExportBookmarks(mockSettings);
       });
 
@@ -573,7 +604,7 @@ describe('useBookmarks Hook', () => {
 
     test('should import bookmarks from a file, merging with existing data', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       const importedData = {
         version: '1.0',
@@ -637,7 +668,7 @@ describe('useBookmarks Hook', () => {
 
     test('should show error for invalid file format during import', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       const invalidData = { some: 'random', data: 'structure' };
       await act(async () => {
@@ -650,7 +681,7 @@ describe('useBookmarks Hook', () => {
     });
      test('should show error for invalid space structure during import', async () => {
       const { result } = renderHook(() => useBookmarks());
-      await act(async () => { /* allow initial load */ });
+      // Removed: await act(async () => { /* allow initial load */ });
 
       const invalidData = { version: '1.0', spaces: [{id: 's1' /* missing name, color, groups */}] };
       await act(async () => {

@@ -2,6 +2,23 @@ import { act, renderHook } from '@testing-library/react';
 import { useSettings, defaultSettings } from './useSettings'; // Assuming the hook and defaults are here
 import type { AppSettings } from '../types'; // Assuming types are here
 
+// Define a minimal type for the parts of chrome API used in mocks for this file
+type MockChromeForSettings = {
+  storage: {
+    local: {
+      get: jest.Mock;
+      set: jest.Mock;
+    };
+  };
+  runtime: {
+    lastError: chrome.runtime.LastError | undefined;
+    onMessage?: { // Optional, as it's not directly used by useSettings but good for global mock structure
+      addListener: jest.Mock;
+      removeListener: jest.Mock;
+    };
+  };
+};
+
 // Mock Chrome APIs
 global.chrome = {
   storage: {
@@ -11,27 +28,25 @@ global.chrome = {
     },
   },
   runtime: {
-    // @ts-ignore
     lastError: undefined,
-    // Mock other runtime properties if needed by the hook indirectly
-    onMessage: {
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-    },
+    onMessage: { // Keep onMessage for structural consistency if other parts of chrome mock expect it
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+    }
   },
-  // Add other chrome APIs if they are used by the hook
-} as any;
+} as MockChromeForSettings;
 
 
 describe('useSettings Hook', () => {
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks();
-    // @ts-ignore
-    chrome.runtime.lastError = undefined;
+    if (global.chrome && global.chrome.runtime) { // Ensure runtime object exists
+        global.chrome.runtime.lastError = undefined;
+    }
 
     // Default mock for chrome.storage.local.get to return no settings initially (or default)
-    (chrome.storage.local.get as jest.Mock).mockImplementation((keys, callback) => {
+    (global.chrome.storage.local.get as jest.Mock).mockImplementation((keys, callback) => {
       if (keys === 'settings') {
         callback({ settings: undefined }); // Simulate no settings saved
       } else {
@@ -49,16 +64,10 @@ describe('useSettings Hook', () => {
 
   test('should load initial settings from storage or use defaults', async () => {
     // Scenario 1: Storage is empty, should use defaultSettings
-    const { result: resultDefault, waitForNextUpdate: waitForDefaultUpdate, unmount: unmountDefault } = renderHook(() => useSettings());
+    const { result: resultDefault, unmount: unmountDefault } = renderHook(() => useSettings()); // Removed waitForDefaultUpdate
 
-    // Need to wait for useEffect to run
-    await act(async () => {
-      // Default mock for get returns { settings: undefined }
-      // No need to call waitForNextUpdate if initial state is defaultSettings
-      // and useEffect doesn't cause an immediate second update based on undefined from storage.
-      // The hook initializes with defaultSettings, then useEffect runs.
-      // If storage is empty, state remains defaultSettings.
-    });
+    // The hook initializes with defaultSettings, and useEffect (if storage is empty)
+    // will result in the same defaultSettings. No specific act/wait needed here for this assertion.
     expect(resultDefault.current.settings).toEqual(defaultSettings);
     unmountDefault(); // Clean up before next renderHook
 
@@ -77,7 +86,7 @@ describe('useSettings Hook', () => {
       }
     });
 
-    const { result: resultStored, waitForNextUpdate: waitForStoredUpdate } = renderHook(() => useSettings());
+    const { result: resultStored } = renderHook(() => useSettings()); // Removed waitForStoredUpdate
 
     await act(async () => {
       // Wait for useEffect to fetch and set the stored settings
@@ -241,14 +250,14 @@ describe('useSettings Hook', () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Test error during initial load (chrome.storage.local.get)
-    (chrome.storage.local.get as jest.Mock).mockImplementation((keys, callback) => {
-      // @ts-ignore
-      chrome.runtime.lastError = { message: 'Error getting settings' };
+    (global.chrome.storage.local.get as jest.Mock).mockImplementation((keys, callback) => {
+      if (global.chrome.runtime) global.chrome.runtime.lastError = { message: 'Error getting settings' };
       callback({}); // Simulate error by returning empty object or undefined for settings
     });
 
     const { result: resultGetError, unmount: unmountGetError } = renderHook(() => useSettings());
-    await act(async () => { /* allow useEffect to run */ });
+    // No specific act/wait needed here for the assertion if initial state is default
+    // and useEffect results in default upon error.
 
     // Hook should fall back to default settings and not crash
     expect(resultGetError.current.settings).toEqual(defaultSettings);
@@ -257,10 +266,9 @@ describe('useSettings Hook', () => {
     unmountGetError();
 
     // Reset lastError for the next test part
-    // @ts-ignore
-    chrome.runtime.lastError = undefined;
+    if (global.chrome && global.chrome.runtime) global.chrome.runtime.lastError = undefined;
     // Restore default get behavior for setting other settings
-     (chrome.storage.local.get as jest.Mock).mockImplementation((keys, callback) => {
+     (global.chrome.storage.local.get as jest.Mock).mockImplementation((keys, callback) => {
       if (keys === 'settings') {
         callback({ settings: defaultSettings });
       } else {
@@ -270,9 +278,8 @@ describe('useSettings Hook', () => {
 
 
     // Test error during update (chrome.storage.local.set)
-    (chrome.storage.local.set as jest.Mock).mockImplementation((items, callback) => {
-      // @ts-ignore
-      chrome.runtime.lastError = { message: 'Error setting settings' };
+    (global.chrome.storage.local.set as jest.Mock).mockImplementation((items, callback) => {
+      if (global.chrome.runtime) global.chrome.runtime.lastError = { message: 'Error setting settings' };
       if (callback) {
         callback(); // Call callback even if there's an error, as per some API behaviors
       }

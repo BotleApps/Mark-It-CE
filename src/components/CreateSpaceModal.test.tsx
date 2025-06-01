@@ -31,8 +31,7 @@ describe('CreateSpaceModal Component', () => {
   test('input field is focused on mount', async () => {
     render(<CreateSpaceModal {...defaultProps} />);
     const inputElement = screen.getByLabelText('Space Name');
-    // eslint-disable-next-line testing-library/no-node-access
-    await waitFor(() => expect(document.activeElement).toBe(inputElement));
+    await waitFor(() => expect(inputElement).toHaveFocus());
   });
 
   test('input field for space name updates internal state', async () => {
@@ -119,7 +118,7 @@ describe('CreateSpaceModal Component', () => {
 
   test('Create Space button does not call onSave if space name is empty', async () => {
     render(<CreateSpaceModal {...defaultProps} />);
-    const formElement = screen.getByRole('button', { name: 'Create Space' }).closest('form');
+    const formElement = screen.getByRole('form'); // Get form by its implicit role
 
     fireEvent.submit(formElement!);
     expect(mockOnSave).not.toHaveBeenCalled();
@@ -166,10 +165,11 @@ describe('CreateSpaceModal Component', () => {
 
   test('Clicking the backdrop calls onClose', async () => {
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
-    const backdropElement = screen.getByText('Create New Space').closest('div.fixed.inset-0');
+    const { container } = render(<CreateSpaceModal {...defaultProps} />);
+    const backdropElement = container.firstChild as HTMLElement;
 
     expect(backdropElement).toBeInTheDocument();
+    expect(backdropElement).toHaveClass('fixed', 'inset-0'); // Verify it's likely the backdrop
     if (backdropElement) {
         await user.click(backdropElement);
     }

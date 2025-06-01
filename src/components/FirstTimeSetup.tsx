@@ -63,22 +63,24 @@ export function FirstTimeSetup({ onComplete, onSkip, theme }: FirstTimeSetupProp
     };
 
     loadBookmarks();
-  }, []);
+  }, [getSubfolders]); // getSubfolders is now memoized
 
-  const getSubfolders = (node: chrome.bookmarks.BookmarkTreeNode, level: number): FolderNode[] => {
+  const getSubfolders = useCallback((node: chrome.bookmarks.BookmarkTreeNode, level: number): FolderNode[] => {
     if (!node.children) return [];
 
+    // Inner recursive call should refer to the memoized version or be defined inside if it causes issues.
+    // For now, direct recursion should be fine as the function signature matches.
     return node.children
       .filter(child => !child.url)
       .map(folder => ({
         id: folder.id,
         title: folder.title,
-        children: getSubfolders(folder, level + 1),
+        children: getSubfolders(folder, level + 1), // Recursive call
         level: level + 1,
         isExpanded: false,
         selected: false
       }));
-  };
+  }, []); // getSubfolders itself has no dependencies from component scope
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => 

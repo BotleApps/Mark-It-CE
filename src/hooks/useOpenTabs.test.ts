@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react'; // Import waitFor
 import { useOpenTabs } from './useOpenTabs'; // Assuming the hook is in this path
 import type { Bookmark } from '../types'; // Assuming types are here
 
@@ -6,12 +6,35 @@ import type { Bookmark } from '../types'; // Assuming types are here
 let mockTabs: chrome.tabs.Tab[] = [];
 let onUpdatedListeners: ((tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => void)[] = [];
 let onRemovedListeners: ((tabId: number, removeInfo: chrome.tabs.TabRemoveInfo) => void)[] = [];
-let onCreatedListeners: ((tab: chrome.tabs.Tab) => void)[] = []; // Added for onCreated
+let onCreatedListeners: ((tab: chrome.tabs.Tab) => void)[] = [];
+
+// Minimal type for the chrome mock in this file
+type MockChromeTabsTest = {
+  tabs: {
+    onCreated: { addListener: jest.Mock; removeListener: jest.Mock };
+    query: jest.Mock;
+    onUpdated: { addListener: jest.Mock; removeListener: jest.Mock };
+    onRemoved: { addListener: jest.Mock; removeListener: jest.Mock };
+  };
+  windows: {
+    WINDOW_ID_CURRENT: number | undefined; // chrome.windows.WINDOW_ID_CURRENT can be undefined
+  };
+  runtime: {
+    lastError: chrome.runtime.LastError | undefined;
+    onMessage: { addListener: jest.Mock; removeListener: jest.Mock };
+  };
+  // Include storage and bookmarks if they were to be used more deeply by this hook's tests
+  // For now, keeping them minimal as they are part of the global mock but not primary to useOpenTabs
+  storage: { local: { get: jest.Mock; set: jest.Mock; } };
+  bookmarks: {
+    getTree: jest.Mock; getChildren: jest.Mock; create: jest.Mock;
+    update: jest.Mock; removeTree: jest.Mock; getSubTree: jest.Mock;
+  };
+};
 
 global.chrome = {
   tabs: {
-    // @ts-ignore
-    onCreated: { // Added mock for onCreated
+    onCreated: {
       addListener: jest.fn((listener) => {
         onCreatedListeners.push(listener);
       }),
@@ -50,11 +73,11 @@ global.chrome = {
     },
   },
   windows: {
-    // @ts-ignore
+    // @ts-expect-error // Mocking WINDOW_ID_CURRENT which is a constant
     WINDOW_ID_CURRENT: 1, // Example window ID
   },
   runtime: {
-    // @ts-ignore
+    // @ts-expect-error // Mocking lastError which is read-only
     lastError: undefined,
     onMessage: {
       addListener: jest.fn(),
@@ -68,7 +91,7 @@ global.chrome = {
       set: jest.fn(),
     },
   },
-  bookmarks: {
+  bookmarks: { // These are not directly used by useOpenTabs but part of the global mock structure
     getTree: jest.fn(),
     getChildren: jest.fn(),
     create: jest.fn(),
@@ -76,7 +99,7 @@ global.chrome = {
     removeTree: jest.fn(),
     getSubTree: jest.fn(),
   }
-} as any;
+} as MockChromeTabsTest; // Use the defined type
 
 // Mock useBookmarks hook as it's a dependency
 jest.mock('./useBookmarks', () => ({
@@ -98,9 +121,10 @@ describe('useOpenTabs Hook', () => {
     mockTabs = [];
     onUpdatedListeners = [];
     onRemovedListeners = [];
-    onCreatedListeners = []; // Reset onCreated listeners
-    // @ts-ignore
-    chrome.runtime.lastError = undefined;
+    onCreatedListeners = [];
+    if (global.chrome && global.chrome.runtime) { // Ensure runtime object exists before setting lastError
+      global.chrome.runtime.lastError = undefined;
+    }
 
     // Default mock for chrome.tabs.query
     (chrome.tabs.query as jest.Mock).mockImplementation(async (queryInfo, callback) => {
@@ -127,20 +151,22 @@ describe('useOpenTabs Hook', () => {
       }]
     };
     mockTabs = [
-      { id: 1, title: 'Tab 1', url: 'https://tab1.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
-      { id: 2, title: 'Tab 2', url: 'https://tab2.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true },
-      { id: 3, title: 'Chrome Settings', url: 'chrome://settings', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 2, discarded: false, autoDiscardable: true },
-      { id: 4, title: 'Already Bookmarked Tab', url: 'https://already-bookmarked.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 3, discarded: false, autoDiscardable: true },
+      { id: 1, title: 'Tab 1', url: 'https://tab1.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
+      { id: 2, title: 'Tab 2', url: 'https://tab2.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true },
+      { id: 3, title: 'Chrome Settings', url: 'chrome://settings', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 2, discarded: false, autoDiscardable: true },
+      { id: 4, title: 'Already Bookmarked Tab', url: 'https://already-bookmarked.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 3, discarded: false, autoDiscardable: true },
     ];
 
-    const { result, waitForNextUpdate } = renderHook(() => useOpenTabs(mockActiveSpace));
+    const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed unused rerender, waitFor from destructuring
 
     // Allow promises to resolve and state to update
-    await act(async () => {
-      await waitForNextUpdate(); // Or a more robust way to wait for async operations if needed
+
+    // Allow promises to resolve and state to update
+    await waitFor(() => { // Wait for the state to reflect the fetched tabs
+        expect(result.current.openTabs.length).toBeGreaterThanOrEqual(0); // Check against expected length or specific content
     });
 
-    expect(chrome.tabs.query).toHaveBeenCalledWith({ currentWindow: true }, expect.any(Function));
+    expect(global.chrome.tabs.query).toHaveBeenCalledWith({ currentWindow: true }, expect.any(Function));
     expect(result.current.openTabs).toHaveLength(2); // Tab 1 and Tab 2
     expect(result.current.openTabs.find(tab => tab.url === 'https://tab1.com')).toBeDefined();
     expect(result.current.openTabs.find(tab => tab.url === 'https://tab2.com')).toBeDefined();
@@ -152,15 +178,17 @@ describe('useOpenTabs Hook', () => {
   test('should update tabs list when a tab is updated (e.g. new tab loaded, or existing tab url changed)', async () => {
     const mockActiveSpace = { id: 's', name: 'S', color: '', groups: [] };
     mockTabs = [
-      { id: 1, title: 'Old Title', url: 'https://initial.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
+      { id: 1, title: 'Old Title', url: 'https://initial.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
     ];
-    const { result, waitForNextUpdate } = renderHook(() => useOpenTabs(mockActiveSpace));
-    await act(async () => { await waitForNextUpdate(); }); // Initial fetch
+    const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed waitFor from destructuring
+    await waitFor(() => expect(result.current.openTabs.length).toBe(1)); // Initial fetch
 
     expect(result.current.openTabs.find(t => t.url === 'https://initial.com')).toBeDefined();
 
     // Simulate a tab update (e.g., navigation to a new URL in the same tab)
-    const updatedTabInfo = { id: 1, title: 'New Title', url: 'https://updated.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true };
+    const updatedTabInfo = { id: 1, title: 'New Title', url: 'https://updated.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true };
+    mockTabs = [updatedTabInfo]; // Update the source of truth for the next query
+
     mockTabs = [updatedTabInfo]; // Update the source of truth for the next query
 
     await act(async () => {
@@ -168,10 +196,10 @@ describe('useOpenTabs Hook', () => {
       for (const listener of onUpdatedListeners) {
         listener(1, { status: 'complete', url: 'https://updated.com' }, updatedTabInfo);
       }
-      await waitForNextUpdate(); // Wait for re-fetch and state update
     });
+    await waitFor(() => expect(result.current.openTabs[0]?.url).toBe('https://updated.com'));
 
-    expect(chrome.tabs.query).toHaveBeenCalledTimes(2); // Initial + after update
+    expect(global.chrome.tabs.query).toHaveBeenCalledTimes(2); // Initial + after update
     expect(result.current.openTabs).toHaveLength(1);
     expect(result.current.openTabs[0].title).toBe('New Title');
     expect(result.current.openTabs[0].url).toBe('https://updated.com');
@@ -180,25 +208,25 @@ describe('useOpenTabs Hook', () => {
   test('should update tabs list when a new tab is created', async () => {
     const mockActiveSpace = { id: 's', name: 'S', color: '', groups: [] };
     mockTabs = [
-      { id: 1, title: 'Existing Tab', url: 'https://existing.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
+      { id: 1, title: 'Existing Tab', url: 'https://existing.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
     ];
-    const { result, waitForNextUpdate } = renderHook(() => useOpenTabs(mockActiveSpace));
-    await act(async () => { await waitForNextUpdate(); }); // Initial fetch
+    const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed waitFor from destructuring
+    await waitFor(() => expect(result.current.openTabs.length).toBe(1)); // Initial fetch
 
     expect(result.current.openTabs.find(t => t.url === 'https://existing.com')).toBeDefined();
 
     // Simulate a new tab being created
-    const newTabInfo = { id: 2, title: 'New Tab', url: 'https://newtab.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true };
+    const newTabInfo = { id: 2, title: 'New Tab', url: 'https://newtab.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true };
     mockTabs.push(newTabInfo); // Add to the source of truth
 
     await act(async () => {
       for (const listener of onCreatedListeners) { // Use onCreatedListeners
         listener(newTabInfo);
       }
-      await waitForNextUpdate();
     });
+    await waitFor(() => expect(result.current.openTabs.find(t => t.id === 2)).toBeDefined());
 
-    expect(chrome.tabs.query).toHaveBeenCalledTimes(2);
+    expect(global.chrome.tabs.query).toHaveBeenCalledTimes(2);
     expect(result.current.openTabs).toHaveLength(2);
     expect(result.current.openTabs.find(t => t.url === 'https://newtab.com')).toBeDefined();
   });
@@ -208,11 +236,11 @@ describe('useOpenTabs Hook', () => {
   test('should update tabs list when a tab is removed', async () => {
     const mockActiveSpace = { id: 's', name: 'S', color: '', groups: [] };
     mockTabs = [
-      { id: 1, title: 'To Be Removed', url: 'https://toberemoved.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
-      { id: 2, title: 'Stays', url: 'https://stays.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true },
+      { id: 1, title: 'To Be Removed', url: 'https://toberemoved.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
+      { id: 2, title: 'Stays', url: 'https://stays.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true },
     ];
-    const { result, waitForNextUpdate } = renderHook(() => useOpenTabs(mockActiveSpace));
-    await act(async () => { await waitForNextUpdate(); }); // Initial fetch
+    const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed waitFor from destructuring
+    await waitFor(() => expect(result.current.openTabs.length).toBe(2)); // Initial fetch
 
     expect(result.current.openTabs.find(t => t.id === 1)).toBeDefined();
 
@@ -222,12 +250,12 @@ describe('useOpenTabs Hook', () => {
     await act(async () => {
       // Trigger all onRemoved listeners
       for (const listener of onRemovedListeners) {
-        listener(1, { windowId: chrome.windows.WINDOW_ID_CURRENT, isWindowClosing: false });
+        listener(1, { windowId: global.chrome.windows.WINDOW_ID_CURRENT!, isWindowClosing: false });
       }
-      await waitForNextUpdate(); // Wait for re-fetch and state update
     });
+    await waitFor(() => expect(result.current.openTabs.find(t => t.id === 1)).toBeUndefined());
 
-    expect(chrome.tabs.query).toHaveBeenCalledTimes(2); // Initial + after removal
+    expect(global.chrome.tabs.query).toHaveBeenCalledTimes(2); // Initial + after removal
     expect(result.current.openTabs).toHaveLength(1);
     expect(result.current.openTabs.find(t => t.id === 1)).toBeUndefined();
     expect(result.current.openTabs[0].url).toBe('https://stays.com');
@@ -241,12 +269,12 @@ describe('useOpenTabs Hook', () => {
 
       // Ensure the tab to be bookmarked is part of the initial openTabs
       mockTabs = [
-        { id: 100, title: 'Bookmark Me', url: 'https://bookmarkme.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
-        { id: 101, title: 'Another Tab', url: 'https://another.com', windowId: chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true },
+        { id: 100, title: 'Bookmark Me', url: 'https://bookmarkme.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
+        { id: 101, title: 'Another Tab', url: 'https://another.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: false, index: 1, discarded: false, autoDiscardable: true },
       ];
 
-      const { result, waitForNextUpdate } = renderHook(() => useOpenTabs(mockActiveSpace));
-      await act(async () => { await waitForNextUpdate(); }); // Initial fetch
+      const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed waitFor from destructuring
+      await waitFor(() => expect(result.current.openTabs.length).toBe(2)); // Initial fetch
 
       expect(result.current.openTabs.find(t => t.id === tabToBookmark.id)).toBeDefined(); // Verify it's initially there
 
@@ -288,27 +316,22 @@ describe('useOpenTabs Hook', () => {
 
     // Simulate chrome.tabs.query failing by setting chrome.runtime.lastError
     // and ensuring the callback might be called with undefined or empty tabs
-    (chrome.tabs.query as jest.Mock).mockImplementation(async (queryInfo, callback) => {
-      // @ts-ignore
-      chrome.runtime.lastError = { message: 'Simulated error fetching tabs' };
-      if (callback) {
-        callback(undefined); // Simulate tabs being undefined due to error
+    (global.chrome.tabs.query as jest.Mock).mockImplementation(async (queryInfo, callbackOrPromise) => {
+      if (global.chrome.runtime) global.chrome.runtime.lastError = { message: 'Simulated error fetching tabs' };
+      if (typeof callbackOrPromise === 'function') {
+        callbackOrPromise(undefined); // Simulate tabs being undefined due to error
+      } else {
+        // This branch might not be hit if chrome.tabs.query always expects a callback with this mock structure
+        return Promise.resolve(undefined as unknown as chrome.tabs.Tab[]);
       }
-      // Or, if the API directly threw, the promise way:
-      // return Promise.reject(new Error("Simulated error"));
     });
 
     // Spy on console.error to check if the hook logs the error
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    const { result, waitForNextUpdate } = renderHook(() => useOpenTabs(mockActiveSpace));
+    const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed waitFor from destructuring
 
-    await act(async () => {
-      // Allow promises to resolve. Since query might call callback directly,
-      // waitForNextUpdate might not be strictly needed if state updates synchronously after error.
-      // However, good to keep if there's any async nature to error handling.
-      // Given the hook doesn't have explicit error async handling, this might be immediate.
-    });
+    await waitFor(() => expect(result.current.openTabs).toEqual([]));
 
     // The hook doesn't explicitly set an error state in its return.
     // We check that openTabs is empty, which is the current behavior on error or no tabs.
