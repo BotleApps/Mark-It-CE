@@ -62,7 +62,7 @@ describe('BookmarkEditModal Component', () => {
   test('Save Changes button calls onSave with updated bookmark data when inputs are valid', async () => {
     const user = userEvent.setup();
     render(<BookmarkEditModal {...defaultProps} />);
-
+    
     const titleInput = screen.getByLabelText('Title');
     const urlInput = screen.getByLabelText('URL');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' }); // Corrected
@@ -81,7 +81,7 @@ describe('BookmarkEditModal Component', () => {
     });
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
-
+  
   test('Enter key in URL input calls onSave when inputs are valid', async () => {
     const user = userEvent.setup();
     render(<BookmarkEditModal {...defaultProps} />);
@@ -140,12 +140,12 @@ describe('BookmarkEditModal Component', () => {
 
     await user.clear(titleInput);
     await user.click(saveButton);
-
+    
     expect(mockOnSave).not.toHaveBeenCalled();
     expect(screen.getByText('Title is required.')).toBeInTheDocument();
     expect(mockOnClose).not.toHaveBeenCalled();
   });
-
+  
   test('does not call onSave and shows error if title is only whitespace', async () => {
     const user = userEvent.setup();
     render(<BookmarkEditModal {...defaultProps} />);
@@ -155,7 +155,7 @@ describe('BookmarkEditModal Component', () => {
     await user.clear(titleInput);
     await user.type(titleInput, '   ');
     await user.click(saveButton);
-
+    
     expect(mockOnSave).not.toHaveBeenCalled();
     expect(screen.getByText('Title is required.')).toBeInTheDocument();
     expect(mockOnClose).not.toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe('BookmarkEditModal Component', () => {
     expect(screen.getByText('Invalid URL.')).toBeInTheDocument();
     expect(mockOnClose).not.toHaveBeenCalled();
   });
-
+  
   test('error message is cleared on subsequent valid submission attempt', async () => {
     const user = userEvent.setup();
     render(<BookmarkEditModal {...defaultProps} />);
@@ -230,7 +230,7 @@ describe('BookmarkEditModal Component', () => {
     const user = userEvent.setup();
     render(<BookmarkEditModal {...defaultProps} />);
     const backdropElement = screen.getByText('Edit Bookmark').closest('div.fixed.inset-0');
-
+    
     expect(backdropElement).toBeInTheDocument();
     if (backdropElement) {
       await user.click(backdropElement);
@@ -241,14 +241,16 @@ describe('BookmarkEditModal Component', () => {
   test('Escape key calls onClose', async () => {
     const user = userEvent.setup();
     render(<BookmarkEditModal {...defaultProps} />);
-    screen.getByLabelText('Title').focus();
+    screen.getByLabelText('Title').focus(); 
     await user.keyboard('{escape}');
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
-
+  
   test('title input is focused on mount', async () => {
     render(<BookmarkEditModal {...defaultProps} />);
     const titleInput = screen.getByLabelText('Title');
+    // The eslint-disable-next-line comment for testing-library/no-node-access that was here previously
+    // is removed because the linter reported it as unused (though it also reported the error it was meant to suppress).
     await waitFor(() => expect(titleInput).toHaveFocus());
   });
 

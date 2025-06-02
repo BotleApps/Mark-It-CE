@@ -65,7 +65,7 @@ describe('useSettings Hook', () => {
   test('should load initial settings from storage or use defaults', async () => {
     // Scenario 1: Storage is empty, should use defaultSettings
     const { result: resultDefault, unmount: unmountDefault } = renderHook(() => useSettings()); // Removed waitForDefaultUpdate
-
+    
     // The hook initializes with defaultSettings, and useEffect (if storage is empty)
     // will result in the same defaultSettings. No specific act/wait needed here for this assertion.
     expect(resultDefault.current.settings).toEqual(defaultSettings);
@@ -87,12 +87,12 @@ describe('useSettings Hook', () => {
     });
 
     const { result: resultStored } = renderHook(() => useSettings()); // Removed waitForStoredUpdate
-
+    
     await act(async () => {
       // Wait for useEffect to fetch and set the stored settings
       // This might require a more robust waiting mechanism if there are multiple async operations
       // For now, a simple flush of promises.
-      await Promise.resolve();
+      await Promise.resolve(); 
     });
 
     // The hook's useEffect should update the state after getting data from storage.
@@ -121,7 +121,7 @@ describe('useSettings Hook', () => {
     expect(chrome.storage.local.set).toHaveBeenCalledWith({ settings: newSettingsData });
     expect(result.current.isThemeChanging).toBe(false);
   });
-
+  
   test('should update settings and handle theme change flow using handleUpdateSettings', async () => {
     jest.useFakeTimers();
     const { result } = renderHook(() => useSettings());
@@ -145,7 +145,7 @@ describe('useSettings Hook', () => {
     act(() => {
       jest.advanceTimersByTime(50);
     });
-
+    
     // Settings should now be updated
     expect(result.current.settings.theme).toBe('dark');
     expect(chrome.storage.local.set).toHaveBeenCalledWith({ settings: newSettingsData });
@@ -155,7 +155,7 @@ describe('useSettings Hook', () => {
     act(() => {
       jest.advanceTimersByTime(300);
     });
-
+    
     expect(result.current.isThemeChanging).toBe(false);
     await act(async () => { await updatePromise; }); // Ensure the async function completes
     jest.useRealTimers();
@@ -196,7 +196,7 @@ describe('useSettings Hook', () => {
       settings: expect.objectContaining({ rightPanelCollapsed: false }),
     });
   });
-
+  
   describe('Theme Management', () => {
     // The specific test for theme change logic is now covered by the handleUpdateSettings test.
     // This describe block can be used for more theme-specific tests if they arise,
@@ -234,7 +234,7 @@ describe('useSettings Hook', () => {
             // Need to advance timers if theme changed, even to 'system'
             // Assuming current theme is not 'system'
         });
-
+        
         // If initial theme was different, timers are involved.
         // If we assume defaultSettings.theme ('light') is the initial.
         expect(result.current.isThemeChanging).toBe(true);
@@ -245,7 +245,7 @@ describe('useSettings Hook', () => {
         expect(chrome.storage.local.set).toHaveBeenCalledWith({ settings: newSettingsData });
     });
   });
-
+  
   test('should handle errors during storage operations', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -258,19 +258,19 @@ describe('useSettings Hook', () => {
     const { result: resultGetError, unmount: unmountGetError } = renderHook(() => useSettings());
     // No specific act/wait needed here for the assertion if initial state is default
     // and useEffect results in default upon error.
-
+    
     // Hook should fall back to default settings and not crash
     expect(resultGetError.current.settings).toEqual(defaultSettings);
     // Check if the hook logs the error (it currently doesn't, but good for future)
     // expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Error getting settings'));
     unmountGetError();
-
+    
     // Reset lastError for the next test part
     if (global.chrome && global.chrome.runtime) global.chrome.runtime.lastError = undefined;
     // Restore default get behavior for setting other settings
      (global.chrome.storage.local.get as jest.Mock).mockImplementation((keys, callback) => {
       if (keys === 'settings') {
-        callback({ settings: defaultSettings });
+        callback({ settings: defaultSettings }); 
       } else {
         callback({});
       }

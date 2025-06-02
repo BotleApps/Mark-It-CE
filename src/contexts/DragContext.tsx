@@ -7,7 +7,7 @@ import { DragContext, type DragContextType } from './DragContextObject'; // Impo
 
 export function DragProvider({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState<OpenTab | null>(null);
-  const [activeDragItem, setActiveDragItem] = useState<OpenTab | Bookmark | null>(null);
+  const [activeDragItem, setActiveDragItem] = useState<OpenTab | Bookmark | null>(null); 
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   // Ensure the value provided to context matches DragContextType

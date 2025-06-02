@@ -26,9 +26,9 @@ type MockChromeTabsTest = {
   // Include storage and bookmarks if they were to be used more deeply by this hook's tests
   // For now, keeping them minimal as they are part of the global mock but not primary to useOpenTabs
   storage: { local: { get: jest.Mock; set: jest.Mock; } };
-  bookmarks: {
-    getTree: jest.Mock; getChildren: jest.Mock; create: jest.Mock;
-    update: jest.Mock; removeTree: jest.Mock; getSubTree: jest.Mock;
+  bookmarks: { 
+    getTree: jest.Mock; getChildren: jest.Mock; create: jest.Mock; 
+    update: jest.Mock; removeTree: jest.Mock; getSubTree: jest.Mock; 
   };
 };
 
@@ -121,7 +121,7 @@ describe('useOpenTabs Hook', () => {
     mockTabs = [];
     onUpdatedListeners = [];
     onRemovedListeners = [];
-    onCreatedListeners = [];
+    onCreatedListeners = []; 
     if (global.chrome && global.chrome.runtime) { // Ensure runtime object exists before setting lastError
       global.chrome.runtime.lastError = undefined;
     }
@@ -158,9 +158,9 @@ describe('useOpenTabs Hook', () => {
     ];
 
     const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed unused rerender, waitFor from destructuring
-
+    
     // Allow promises to resolve and state to update
-
+    
     // Allow promises to resolve and state to update
     await waitFor(() => { // Wait for the state to reflect the fetched tabs
         expect(result.current.openTabs.length).toBeGreaterThanOrEqual(0); // Check against expected length or specific content
@@ -198,7 +198,7 @@ describe('useOpenTabs Hook', () => {
       }
     });
     await waitFor(() => expect(result.current.openTabs[0]?.url).toBe('https://updated.com'));
-
+    
     expect(global.chrome.tabs.query).toHaveBeenCalledTimes(2); // Initial + after update
     expect(result.current.openTabs).toHaveLength(1);
     expect(result.current.openTabs[0].title).toBe('New Title');
@@ -225,7 +225,7 @@ describe('useOpenTabs Hook', () => {
       }
     });
     await waitFor(() => expect(result.current.openTabs.find(t => t.id === 2)).toBeDefined());
-
+    
     expect(global.chrome.tabs.query).toHaveBeenCalledTimes(2);
     expect(result.current.openTabs).toHaveLength(2);
     expect(result.current.openTabs.find(t => t.url === 'https://newtab.com')).toBeDefined();
@@ -266,7 +266,7 @@ describe('useOpenTabs Hook', () => {
     test('should create a bookmark object from a tab and update internal state', async () => {
       const mockActiveSpace = { id: 's', name: 'S', color: '', groups: [] };
       const tabToBookmark: OpenTab = { id: 100, title: 'Bookmark Me', url: 'https://bookmarkme.com' };
-
+      
       // Ensure the tab to be bookmarked is part of the initial openTabs
       mockTabs = [
         { id: 100, title: 'Bookmark Me', url: 'https://bookmarkme.com', windowId: global.chrome.windows.WINDOW_ID_CURRENT, incognito: false, pinned: false, highlighted: false, active: true, index: 0, discarded: false, autoDiscardable: true },
@@ -309,11 +309,11 @@ describe('useOpenTabs Hook', () => {
     // So, a dedicated test here for that specific case on handleBookmarkTab might be redundant
     // if we trust the filtering in fetchOpenTabs (which is tested by the initial load test).
   });
-
+  
   // Test error handling if chrome.tabs.query fails
   test('should result in empty openTabs if fetching tabs encounters an error', async () => {
     const mockActiveSpace = { id: 's', name: 'S', color: '', groups: [] };
-
+    
     // Simulate chrome.tabs.query failing by setting chrome.runtime.lastError
     // and ensuring the callback might be called with undefined or empty tabs
     (global.chrome.tabs.query as jest.Mock).mockImplementation(async (queryInfo, callbackOrPromise) => {
@@ -322,7 +322,7 @@ describe('useOpenTabs Hook', () => {
         callbackOrPromise(undefined); // Simulate tabs being undefined due to error
       } else {
         // This branch might not be hit if chrome.tabs.query always expects a callback with this mock structure
-        return Promise.resolve(undefined as unknown as chrome.tabs.Tab[]);
+        return Promise.resolve(undefined as unknown as chrome.tabs.Tab[]); 
       }
     });
 
@@ -332,11 +332,11 @@ describe('useOpenTabs Hook', () => {
     const { result } = renderHook(() => useOpenTabs(mockActiveSpace)); // Removed waitFor from destructuring
 
     await waitFor(() => expect(result.current.openTabs).toEqual([]));
-
+    
     // The hook doesn't explicitly set an error state in its return.
     // We check that openTabs is empty, which is the current behavior on error or no tabs.
     expect(result.current.openTabs).toEqual([]);
-
+    
     // Optionally, check if an error was logged, if the hook were to implement that.
     // As the hook doesn't currently log chrome.runtime.lastError, this spy won't be called by the hook itself.
     // If the hook were modified to console.error(chrome.runtime.lastError), this would be useful.

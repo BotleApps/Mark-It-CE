@@ -22,7 +22,6 @@ export function CreateBookmarkModal({ onClose, onSave, groupId, spaceId, theme }
     }
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSubmit = (_e: React.SyntheticEvent) => { // Changed e to _e and type
     _e.preventDefault();
     if (!title.trim()) {

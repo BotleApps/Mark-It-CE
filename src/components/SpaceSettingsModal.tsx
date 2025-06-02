@@ -127,6 +127,7 @@ export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, sp
               ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
               : 'bg-red-400 text-white hover:bg-red-500'
           }`}
+          title="Delete space" // Added title attribute
         >
           <Trash className="w-5 h-5" />
         </button>
