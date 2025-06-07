@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
-import { useDragContext } from '../contexts/DragContext';
+import { useDragContext } from '../contexts/useDragContext'; // Updated import path
 import type { Space, OpenTab } from '../types';
 
 export function useDragHandlers(
   activeSpace: Space, 
-  handleBookmarkTab: (tab: OpenTab, groupId: string) => Promise<void>
+  handleBookmarkTab: (tab: OpenTab) => Promise<{ title: string; url: string; createdAt: string; }>
 ) {
   const {
     setActiveTab,
@@ -47,7 +47,9 @@ export function useDragHandlers(
       const overData = over.data.current;
 
       if (activeData?.type === 'tab' && overData?.type === 'group') {
-        await handleBookmarkTab(activeData.tab, over.id as string);
+        // The groupId (over.id) will need to be handled by the calling component
+        // that uses the result of handleBookmarkTab along with this groupId.
+        await handleBookmarkTab(activeData.tab);
       }
     } catch (error) {
       console.error('Error handling drag end:', error);

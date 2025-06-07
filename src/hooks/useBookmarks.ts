@@ -40,7 +40,12 @@ export function useBookmarks() {
   // Listen for space refresh messages
   useEffect(() => {
     if (typeof chrome !== 'undefined' && chrome.runtime) {
-      const listener = (message: any) => {
+      // Define a more specific type for the runtime message
+      interface RuntimeMessage {
+        type?: string;
+        // Add other properties if messages can have more structure
+      }
+      const listener = (message: RuntimeMessage) => {
         if (message.type === 'REFRESH_SPACES') {
           refreshSpaces();
         }
@@ -354,15 +359,15 @@ export function useBookmarks() {
   const handleImportBookmarksFromFile = async (importData: unknown): Promise<void> => {
     try {
       // Type guard function to validate BookmarkExport
-      const isBookmarkExport = (data: any): data is BookmarkExport => {
+      const isBookmarkExport = (data: unknown): data is BookmarkExport => { // Changed data: any to data: unknown
         return (
-          data &&
+          data !== null && // Ensure data is not null before checking typeof
           typeof data === 'object' &&
           'version' in data &&
           'spaces' in data &&
-          Array.isArray(data.spaces) &&
-          data.spaces.every((space: any) =>
-            space &&
+          Array.isArray((data as BookmarkExport).spaces) && // Type assertion for spaces
+          (data as BookmarkExport).spaces.every((space: unknown) => // Changed space: any to space: unknown
+            space !== null &&
             typeof space === 'object' &&
             'id' in space &&
             'name' in space &&

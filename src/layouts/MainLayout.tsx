@@ -18,7 +18,7 @@ interface MainLayoutProps {
 export function MainLayout({
   spaces,
   activeSpaceId,
-  activeSpace,
+  // activeSpace, // Removed as it's unused
   onSpaceSelect,
   onCreateSpace,
   onEditSpace,

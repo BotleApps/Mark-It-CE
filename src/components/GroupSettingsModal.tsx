@@ -121,6 +121,7 @@ export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups, t
               ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
               : 'bg-red-400 text-white hover:bg-red-500'
           }`}
+          title="Delete group" // Added title attribute
         >
           <Trash className="w-5 h-5" />
         </button>
