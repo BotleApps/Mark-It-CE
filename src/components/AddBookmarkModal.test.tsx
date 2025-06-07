@@ -56,7 +56,7 @@ describe('AddBookmarkModal Component', () => {
   test('Add Bookmark button calls onSave with new bookmark data and calls onClose when inputs are valid', async () => {
     const user = userEvent.setup();
     render(<AddBookmarkModal {...defaultProps} />);
-    
+
     const titleInput = screen.getByLabelText('Title');
     const urlInput = screen.getByLabelText('URL');
     const saveButton = screen.getByRole('button', { name: 'Add Bookmark' });
@@ -81,7 +81,7 @@ describe('AddBookmarkModal Component', () => {
 
     expect(mockOnClose).toHaveBeenCalledTimes(1); // Modal should close on successful save
   });
-  
+
   test('Enter key in URL input calls onSave and onClose when inputs are valid', async () => {
     const user = userEvent.setup();
     render(<AddBookmarkModal {...defaultProps} />);
@@ -140,12 +140,12 @@ describe('AddBookmarkModal Component', () => {
     await user.type(urlInput, 'https://validurl.com');
     // Title is empty
     await user.click(saveButton);
-    
+
     expect(mockOnSave).not.toHaveBeenCalled();
     expect(screen.getByText('Title is required.')).toBeInTheDocument();
     expect(mockOnClose).not.toHaveBeenCalled();
   });
-  
+
   test('does not call onSave and shows error if title is only whitespace', async () => {
     const user = userEvent.setup();
     render(<AddBookmarkModal {...defaultProps} />);
@@ -156,7 +156,7 @@ describe('AddBookmarkModal Component', () => {
     await user.type(titleInput, '   ');
     await user.type(urlInput, 'https://validurl.com');
     await user.click(saveButton);
-    
+
     expect(mockOnSave).not.toHaveBeenCalled();
     expect(screen.getByText('Title is required.')).toBeInTheDocument();
     expect(mockOnClose).not.toHaveBeenCalled();
@@ -193,7 +193,7 @@ describe('AddBookmarkModal Component', () => {
     expect(screen.getByText('Invalid URL.')).toBeInTheDocument();
     expect(mockOnClose).not.toHaveBeenCalled();
   });
-  
+
   test('error message is cleared on subsequent valid submission attempt', async () => {
     const user = userEvent.setup();
     render(<AddBookmarkModal {...defaultProps} />);
@@ -232,7 +232,7 @@ describe('AddBookmarkModal Component', () => {
     const user = userEvent.setup();
     render(<AddBookmarkModal {...defaultProps} />);
     const backdropElement = screen.getByText('Add Bookmark').closest('div.fixed.inset-0');
-    
+
     expect(backdropElement).toBeInTheDocument();
     if (backdropElement) {
       await user.click(backdropElement);
@@ -243,13 +243,13 @@ describe('AddBookmarkModal Component', () => {
   test('Escape key calls onClose', async () => {
     const user = userEvent.setup();
     render(<AddBookmarkModal {...defaultProps} />);
-    
+
     // Need to focus something inside the modal for escape to be typically caught by the modal
-    screen.getByLabelText('Title').focus(); 
+    screen.getByLabelText('Title').focus();
     await user.keyboard('{escape}');
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
-  
+
   test('title input is focused on mount', async () => {
     render(<AddBookmarkModal {...defaultProps} />);
     const titleInput = screen.getByLabelText('Title');

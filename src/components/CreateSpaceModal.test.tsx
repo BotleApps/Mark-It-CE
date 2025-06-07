@@ -42,18 +42,18 @@ describe('CreateSpaceModal Component', () => {
     await user.type(inputElement, 'New Test Space');
     expect(inputElement.value).toBe('New Test Space');
   });
-  
+
   test('ColorPicker interaction (simulated) updates color and is saved', async () => {
     const user = userEvent.setup();
     // This test primarily ensures that if the color state were changed (e.g., by ColorPicker),
     // the new color would be part of the onSave payload.
     // Direct interaction with ColorPicker is complex for this unit test;
     // ColorPicker should have its own tests.
-    
+
     render(<CreateSpaceModal {...defaultProps} />);
     const inputElement = screen.getByLabelText('Space Name');
     await user.type(inputElement, 'Space With Color');
-    
+
     // Here, we are not actually changing the color via UI interaction with ColorPicker
     // because it's a separate component. We rely on the fact that if `setColor` was called
     // by ColorPicker, the `color` state in CreateSpaceModal would update.
@@ -98,7 +98,7 @@ describe('CreateSpaceModal Component', () => {
       })
     );
   });
-  
+
   test('Enter key in input calls onSave with new space data when input is valid', async () => {
     const user = userEvent.setup();
     render(<CreateSpaceModal {...defaultProps} />);
@@ -111,7 +111,7 @@ describe('CreateSpaceModal Component', () => {
     expect(mockOnSave).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Valid Via Enter',
-        color: '#3B82F6', 
+        color: '#3B82F6',
       })
     );
   });
@@ -119,17 +119,17 @@ describe('CreateSpaceModal Component', () => {
   test('Create Space button does not call onSave if space name is empty', async () => {
     render(<CreateSpaceModal {...defaultProps} />);
     const formElement = screen.getByRole('form'); // Get form by its implicit role
-    
+
     fireEvent.submit(formElement!);
     expect(mockOnSave).not.toHaveBeenCalled();
   });
-  
+
   test('Create Space button does not call onSave if space name is only whitespace', async () => {
     const user = userEvent.setup();
     render(<CreateSpaceModal {...defaultProps} />);
     const inputElement = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Create Space' });
-    
+
     await user.type(inputElement, '   ');
     await user.click(saveButton);
     expect(mockOnSave).not.toHaveBeenCalled();
@@ -141,17 +141,17 @@ describe('CreateSpaceModal Component', () => {
     const inputElement = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Create Space' });
     const longName = 'a'.repeat(31);
-    
-    await user.type(inputElement, longName); 
+
+    await user.type(inputElement, longName);
     expect((inputElement as HTMLInputElement).value).toBe('a'.repeat(30));
-    
-    await user.click(saveButton); 
+
+    await user.click(saveButton);
     expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({ name: 'a'.repeat(30) }));
-    
-    mockOnSave.mockClear(); 
+
+    mockOnSave.mockClear();
     fireEvent.change(inputElement, { target: { value: longName } });
     await user.click(saveButton);
-    expect(mockOnSave).not.toHaveBeenCalled(); 
+    expect(mockOnSave).not.toHaveBeenCalled();
   });
 
   test('Cancel button calls onClose', async () => {
@@ -168,10 +168,10 @@ describe('CreateSpaceModal Component', () => {
     const { container } = render(<CreateSpaceModal {...defaultProps} />);
     // eslint-disable-next-line testing-library/no-node-access -- Reaching for modal root for backdrop click
     const backdropElement = container.firstChild as HTMLElement;
-    
-    expect(backdropElement).toBeInTheDocument(); 
+
+    expect(backdropElement).toBeInTheDocument();
     expect(backdropElement).toHaveClass('fixed', 'inset-0'); // Verify it's likely the backdrop
-    if (backdropElement) { 
+    if (backdropElement) {
         await user.click(backdropElement);
     }
     expect(mockOnClose).toHaveBeenCalledTimes(1);
@@ -180,7 +180,7 @@ describe('CreateSpaceModal Component', () => {
   test('Escape key calls onClose', async () => {
     const user = userEvent.setup();
     render(<CreateSpaceModal {...defaultProps} />);
-    
+
     await user.keyboard('{escape}');
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });

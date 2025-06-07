@@ -180,7 +180,7 @@ describe('useBookmarks Hook', () => {
       });
 
       const { result } = renderHook(() => useBookmarks());
-      
+
       // Wait for initial load
       await act(async () => {
         // Ensure state is updated from mock
@@ -188,7 +188,7 @@ describe('useBookmarks Hook', () => {
           callback({ spaces: result.current.spaces, lastActiveSpace: result.current.activeSpaceId });
         });
       });
-      
+
       const updatedSpaceData = { ...initialSpaces[0], name: 'Updated Space Name' };
 
       await act(async () => {
@@ -336,7 +336,7 @@ describe('useBookmarks Hook', () => {
       await act(async () => {
         await result.current.handleDeleteGroup(initialSpaceId, 'g1');
       });
-      
+
       expect(window.confirm).toHaveBeenCalled();
       const targetSpace = result.current.spaces.find(s => s.id === initialSpaceId);
       expect(targetSpace!.groups.find(g => g.id === 'g1')).toBeUndefined();
@@ -438,7 +438,7 @@ describe('useBookmarks Hook', () => {
       await act(async () => {
         await result.current.handleDeleteBookmark(initialSpaceId, initialGroupId, initialBookmarkId);
       });
-      
+
       expect(window.confirm).toHaveBeenCalled();
       const targetGroup = result.current.spaces.find(s => s.id === initialSpaceId)?.groups.find(g => g.id === initialGroupId);
       expect(targetGroup!.bookmarks.find(b => b.id === initialBookmarkId)).toBeUndefined();
@@ -520,7 +520,7 @@ describe('useBookmarks Hook', () => {
       const folder1Group = targetSpace!.groups.find(g => g.name === 'Imported Folder 1');
       expect(folder1Group).toBeDefined();
       expect(folder1Group!.bookmarks.find(b => b.url === 'https://bookmark1.com')).toBeDefined();
-      
+
       // Check for the subfolder's bookmarks within its own group
       const subfolder1Group = targetSpace!.groups.find(g => g.name === 'Subfolder 1');
       expect(subfolder1Group).toBeDefined();
@@ -536,7 +536,7 @@ describe('useBookmarks Hook', () => {
     test('should do nothing if chrome.bookmarks API is not available', async () => {
       const originalChromeBookmarks = chrome.bookmarks;
       // @ts-expect-error // Simulate API not being available for this test
-      chrome.bookmarks = undefined; 
+      chrome.bookmarks = undefined;
 
       const { result } = renderHook(() => useBookmarks());
       // Removed: await act(async () => { /* allow initial load */ });
@@ -639,7 +639,7 @@ describe('useBookmarks Hook', () => {
       await act(async () => {
         await result.current.handleImportBookmarksFromFile(importedData);
       });
-      
+
       const finalSpaces = result.current.spaces;
       // Check new space
       const newImportedSpace = finalSpaces.find(s => s.name === 'New Imported Space');
@@ -649,7 +649,7 @@ describe('useBookmarks Hook', () => {
       // Check existing space s1
       const existingSpaceS1 = finalSpaces.find(s => s.id === 's1');
       expect(existingSpaceS1).toBeDefined();
-      
+
       // Check new group in s1
       const importedGroupInS1 = existingSpaceS1!.groups.find(g => g.name === 'Imported Group');
       expect(importedGroupInS1).toBeDefined();
@@ -661,7 +661,7 @@ describe('useBookmarks Hook', () => {
       expect(existingGroupG1!.bookmarks.length).toBe(2); // Original + one new, duplicate ignored
       expect(existingGroupG1!.bookmarks.find(b => b.url === 'https://existing.com')).toBeDefined();
       expect(existingGroupG1!.bookmarks.find(b => b.url === 'https://anothernew.com')).toBeDefined();
-      
+
       expect(chrome.storage.local.set).toHaveBeenCalled();
       expect(toast.success).toHaveBeenCalledWith('Bookmarks imported and merged successfully');
     });

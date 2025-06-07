@@ -58,9 +58,9 @@ describe('CreateGroupModal Component', () => {
     );
     // The component does not call onClose itself after saving.
     // It's up to the parent to close it after onSave.
-    // expect(mockOnClose).toHaveBeenCalledTimes(1); 
+    // expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
-  
+
   test('Enter key in input calls onSave with new group data when input is valid', async () => {
     const user = userEvent.setup();
     render(<CreateGroupModal {...defaultProps} />);
@@ -74,7 +74,7 @@ describe('CreateGroupModal Component', () => {
       expect.objectContaining({
         name: 'Valid Via Enter',
         name: 'Valid Via Enter',
-        color: '#3B82F6', 
+        color: '#3B82F6',
       })
     );
   });
@@ -95,19 +95,19 @@ describe('CreateGroupModal Component', () => {
     // Try submitting form directly (simulates button click on valid form)
     // or clicking the button. Since button isn't disabled, we check onSave.
     fireEvent.submit(formElement!); // Or await user.click(createButton);
-    
+
     expect(mockOnSave).not.toHaveBeenCalled();
   });
-  
+
   test('Create Group button does not call onSave if group name is only whitespace', async () => {
     const user = userEvent.setup();
     render(<CreateGroupModal {...defaultProps} />);
     const inputElement = screen.getByLabelText('Group Name');
     const createButton = screen.getByRole('button', { name: 'Create Group' });
-    
+
     await user.type(inputElement, '   '); // Whitespace input
     await user.click(createButton);
-    
+
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
@@ -117,18 +117,18 @@ describe('CreateGroupModal Component', () => {
     const inputElement = screen.getByLabelText('Group Name');
     const createButton = screen.getByRole('button', { name: 'Create Group' });
     const longName = 'a'.repeat(31);
-    
+
     await user.type(inputElement, longName);
     expect(inputElement.value).toBe('a'.repeat(30)); // Input maxLength attribute should prevent more
-    
+
     // Even if somehow more than 30 chars were entered (e.g. bypassing maxLength),
     // the submit handler also checks.
     // For this test, we rely on maxLength. If it were bypassed, then click:
     // await user.click(createButton);
     // expect(mockOnSave).not.toHaveBeenCalled();
-    
+
     // Click to ensure the current value (30 chars) is processed
-    await user.click(createButton); 
+    await user.click(createButton);
     expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({name: 'a'.repeat(30)}));
 
     // Clear mock and try to submit with a value that is programmatically set to be too long,
@@ -153,7 +153,7 @@ describe('CreateGroupModal Component', () => {
   test('Clicking the backdrop calls onClose', async () => {
     const user = userEvent.setup();
     const { container } = render(<CreateGroupModal {...defaultProps} />);
-    
+
     // The outermost div is the backdrop
     // eslint-disable-next-line testing-library/no-node-access -- Reaching for modal root for backdrop click
     const backdropElement = container.firstChild as HTMLElement;
@@ -163,11 +163,11 @@ describe('CreateGroupModal Component', () => {
     await user.click(backdropElement!);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
-  
+
    test('Escape key calls onClose', async () => {
     const user = userEvent.setup();
     render(<CreateGroupModal {...defaultProps} />);
-    
+
     await user.keyboard('{escape}');
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -177,7 +177,7 @@ describe('CreateGroupModal Component', () => {
     render(<CreateGroupModal {...defaultProps} />);
     const inputElement = screen.getByLabelText('Group Name'); // getByLabelText itself is an accessibility check
     expect(inputElement).toBeInTheDocument();
-    
+
     // Additionally, check for aria-describedby if there's help text, or aria-invalid for errors.
     // For now, ensuring it's findable by its label is a good start.
   });

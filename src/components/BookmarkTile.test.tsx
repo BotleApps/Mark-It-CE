@@ -53,7 +53,7 @@ describe('BookmarkTile Component', () => {
     render(<BookmarkTile {...defaultProps} linkTarget="_self" />);
     // eslint-disable-next-line testing-library/no-node-access
     const tile = screen.getByText(mockBookmark.title).closest('div.group')!;
-    
+
     await user.click(tile);
     expect(windowOpenSpy).toHaveBeenCalledWith(mockBookmark.url, '_self', 'noopener,noreferrer');
   });
@@ -67,7 +67,7 @@ describe('BookmarkTile Component', () => {
     await user.click(tile);
     expect(windowOpenSpy).toHaveBeenCalledWith(mockBookmark.url, '_blank', 'noopener,noreferrer');
   });
-  
+
   test('action buttons (edit, delete, move) are present', () => {
     render(<BookmarkTile {...defaultProps} />);
     // Buttons are identified by title attribute due to icon-only content
@@ -82,7 +82,7 @@ describe('BookmarkTile Component', () => {
     const user = userEvent.setup();
     render(<BookmarkTile {...defaultProps} />);
     const editButton = screen.getByTitle('Edit bookmark');
-    
+
     await user.click(editButton);
     expect(mockOnEdit).toHaveBeenCalledTimes(1);
     expect(mockOnEdit).toHaveBeenCalledWith(mockBookmark);
@@ -92,7 +92,7 @@ describe('BookmarkTile Component', () => {
     const user = userEvent.setup();
     render(<BookmarkTile {...defaultProps} />);
     const deleteButton = screen.getByTitle('Delete bookmark');
-    
+
     await user.click(deleteButton);
     // No window.confirm in this component, parent should handle confirmation if needed
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
@@ -124,7 +124,7 @@ describe('BookmarkTile Component', () => {
     render(<BookmarkTile {...defaultProps} isLast={true} />);
     expect(screen.getByTitle('Move right')).toBeDisabled();
   });
-  
+
   test('renders with dark theme specific styles (basic check)', () => {
     render(<BookmarkTile {...defaultProps} theme="dark" />);
     // This test primarily ensures the component renders without crashing when theme="dark".
@@ -133,14 +133,14 @@ describe('BookmarkTile Component', () => {
     expect(screen.getByText(mockBookmark.title)).toBeInTheDocument();
     // If specific dark theme classes were applied to the root 'div.group', one might test:
     // const tileRoot = screen.getByText(mockBookmark.title).closest('div.group');
-    // expect(tileRoot).toHaveClass('expected-dark-theme-class'); 
+    // expect(tileRoot).toHaveClass('expected-dark-theme-class');
   });
 
   test('action buttons stop propagation of click events', async () => {
     const user = userEvent.setup();
     render(<BookmarkTile {...defaultProps} />);
     const editButton = screen.getByTitle('Edit bookmark');
-    
+
     await user.click(editButton);
     // window.open (from handleTileClick) should not have been called
     // because the click on the button should have stopped propagation.

@@ -11,7 +11,7 @@ jest.mock('../contexts/DragContext', () => ({
     setActiveTab: mockSetActiveTab,
     setActiveGroup: mockSetActiveGroup,
     // Provide other context values if the hook uses them, e.g., activeTab, activeGroup for reading
-    activeTab: null, 
+    activeTab: null,
     activeGroup: null,
   }),
 }));
@@ -66,12 +66,12 @@ describe('useDragHandlers Hook', () => {
       const event = { // Simulating a bookmark drag start as per previous assumptions
         active: { id: 'bookmark-b1', data: { current: { type: 'bookmark', item: mockBookmarkItem, sourceGroup: 'group1' } } },
       } as DragStartEvent;
-      
+
       act(() => result.current.handleDragStart(event));
 
       expect(mockSetActiveTab).not.toHaveBeenCalled();
     });
-    
+
     test("should do nothing if active.data.current is missing", () => {
       const { result } = getHook();
       const event = { active: { id: 'unknown' } } as DragStartEvent; // No data.current
@@ -121,7 +121,7 @@ describe('useDragHandlers Hook', () => {
       act(() => result.current.handleDragOver(event));
       expect(mockSetActiveGroup).not.toHaveBeenCalled();
     });
-    
+
     test("should not call setActiveGroup if over is null", () => {
       const { result } = getHook();
       const event = {
@@ -140,7 +140,7 @@ describe('useDragHandlers Hook', () => {
       } as DragOverEvent;
       act(() => result.current.handleDragOver(eventNoActiveData));
       expect(mockSetActiveGroup).not.toHaveBeenCalled();
-      
+
       jest.clearAllMocks(); // Clear for next sub-test
 
       const eventNoOverData = {
@@ -192,7 +192,7 @@ describe('useDragHandlers Hook', () => {
         active: { id: 'item-1', data: { current: { type: 'not-a-tab' } } },
         over: { id: 'group1', data: { current: { type: 'group' } } },
       } as DragEndEvent;
-      
+
       await act(async () => { await result.current.handleDragEnd(event); });
 
       expect(mockOnBookmarkOpenTab).not.toHaveBeenCalled();
@@ -208,12 +208,12 @@ describe('useDragHandlers Hook', () => {
       } as DragEndEvent;
 
       await act(async () => { await result.current.handleDragEnd(event); });
-      
+
       expect(mockOnBookmarkOpenTab).not.toHaveBeenCalled();
       expect(mockSetActiveTab).toHaveBeenCalledWith(null);
       expect(mockSetActiveGroup).toHaveBeenCalledWith(null);
     });
-    
+
     test("should reset context even if active.data.current or over.data.current is missing", async () => {
       const { result } = getHook();
       const eventNoActiveData = {
@@ -225,7 +225,7 @@ describe('useDragHandlers Hook', () => {
       expect(mockOnBookmarkOpenTab).not.toHaveBeenCalled();
       expect(mockSetActiveTab).toHaveBeenCalledWith(null);
       expect(mockSetActiveGroup).toHaveBeenCalledWith(null);
-      
+
       jest.clearAllMocks(); // Clear for next sub-test
       mockOnBookmarkOpenTab = jest.fn(); // Re-assign as it's cleared by jest.clearAllMocks
 
@@ -261,7 +261,7 @@ describe('useDragHandlers Hook', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error handling drag end:', expect.any(Error));
       expect(mockSetActiveTab).toHaveBeenCalledWith(null);
       expect(mockSetActiveGroup).toHaveBeenCalledWith(null);
-      
+
       consoleErrorSpy.mockRestore();
     });
   });

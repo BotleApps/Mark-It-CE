@@ -83,7 +83,7 @@ export function ImportBookmarksModal({ onClose, onImport, theme }: ImportBookmar
     const folders = node.children.filter(child => !child.url);
     // Recursive call to getSubfolders should refer to the memoized version.
     return Promise.all(folders.map(async folder => {
-      const subfolders = await getSubfolders(folder, level + 1); 
+      const subfolders = await getSubfolders(folder, level + 1);
       return {
         id: folder.id,
         title: folder.title,

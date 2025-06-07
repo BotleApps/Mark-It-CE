@@ -107,7 +107,7 @@ describe('BookmarkGroup Component', () => {
     const user = userEvent.setup();
     renderWithDndContext(<BookmarkGroupComponent {...defaultTestProps} />);
     const addButton = screen.getByTitle('Add bookmark');
-    
+
     await user.click(addButton);
     expect(screen.getByTestId('add-bookmark-modal')).toBeInTheDocument();
     expect(AddBookmarkModal).toHaveBeenCalledTimes(1);
@@ -116,7 +116,7 @@ describe('BookmarkGroup Component', () => {
   test('saving from AddBookmarkModal calls onAddBookmark prop and closes modal', async () => {
     const user = userEvent.setup();
     renderWithDndContext(<BookmarkGroupComponent {...defaultTestProps} />);
-    
+
     // Open the modal first
     const addBmButton = screen.getByTitle('Add bookmark');
     await user.click(addBmButton);
@@ -133,13 +133,13 @@ describe('BookmarkGroup Component', () => {
     );
     expect(screen.queryByTestId('add-bookmark-modal')).not.toBeInTheDocument(); // Modal should close
   });
-  
+
   test('closing AddBookmarkModal calls its onClose', async () => {
     const user = userEvent.setup();
     renderWithDndContext(<BookmarkGroupComponent {...defaultTestProps} />);
     const addBmButton = screen.getByTitle('Add bookmark');
     await user.click(addBmButton);
-    
+
     const closeModalButton = screen.getByText('Close Add Modal'); // From mock
     await user.click(closeModalButton);
     expect(screen.queryByTestId('add-bookmark-modal')).not.toBeInTheDocument();
@@ -192,7 +192,7 @@ describe('BookmarkGroup Component', () => {
   test('props are passed down to BookmarkTile components correctly', () => {
     renderWithDndContext(<BookmarkGroupComponent {...defaultTestProps} />);
     expect(BookmarkTile).toHaveBeenCalledTimes(mockBookmarksArray.length);
-    
+
     mockBookmarksArray.forEach((bm, index) => {
       expect(BookmarkTile).toHaveBeenNthCalledWith(
         index + 1,
@@ -209,7 +209,7 @@ describe('BookmarkGroup Component', () => {
           // We can check if it's a function.
           onMove: expect.any(Function),
         }),
-        {} 
+        {}
       );
     });
   });
@@ -225,7 +225,7 @@ describe('BookmarkGroup Component', () => {
     const firstBookmarkTile = screen.getByTestId(`bookmark-tile-${mockBookmarksArray[0].id}`);
     // The eslint-disable comment above this line was removed as it was unused.
     const moveRightButtonInTile = within(firstBookmarkTile).getByText('Move Bookmark Right'); // This within is from @testing-library/react
-    
+
     await act(async () => {
       await user.click(moveRightButtonInTile);
     });
@@ -239,7 +239,7 @@ describe('BookmarkGroup Component', () => {
       })
     );
   });
-  
+
   // Test for isOver styling (basic)
   test('applies "isOver" styling when useDroppable indicates', () => {
     // Temporarily mock useDroppable for this specific test
@@ -262,10 +262,10 @@ describe('BookmarkGroup Component', () => {
     // eslint-disable-next-line testing-library/no-node-access
     const groupDiv = container.firstChild as HTMLElement;
     expect(groupDiv).toHaveClass('border-blue-500', 'bg-blue-500/10', 'scale-[1.02]');
-    
+
     jest.unmock('@dnd-kit/core'); // Restore original
      // It's often better to reset modules if you use jest.doMock and want to ensure clean state for other tests
-    jest.resetModules(); 
+    jest.resetModules();
   });
 });
 

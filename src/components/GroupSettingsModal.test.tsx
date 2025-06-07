@@ -45,7 +45,7 @@ describe('GroupSettingsModal Component', () => {
     onSave: mockOnSave,
     onDelete: mockOnDelete,
     group: mockEditingGroup,
-    groups: mockOtherGroups, 
+    groups: mockOtherGroups,
     theme: 'light' as 'light' | 'dark',
   };
 
@@ -69,7 +69,7 @@ describe('GroupSettingsModal Component', () => {
     await user.type(nameInput, 'Updated Group Name');
     expect(nameInput.value).toBe('Updated Group Name');
   });
-  
+
   test('ColorPicker interaction (simulated) updates color and is saved', async () => {
     const user = userEvent.setup();
     render(<GroupSettingsModal {...defaultProps} />);
@@ -86,7 +86,7 @@ describe('GroupSettingsModal Component', () => {
     expect(mockOnSave).toHaveBeenCalledWith(
       expect.objectContaining({
         name: mockEditingGroup.name,
-        color: mockEditingGroup.color, 
+        color: mockEditingGroup.color,
       })
     );
   });
@@ -106,7 +106,7 @@ describe('GroupSettingsModal Component', () => {
     expect(mockOnSave).toHaveBeenCalledWith({
       ...mockEditingGroup,
       name: 'A New Valid Name',
-      color: mockEditingGroup.color, 
+      color: mockEditingGroup.color,
     });
     // The component does NOT call onClose itself after saving
     expect(mockOnClose).not.toHaveBeenCalled();
@@ -123,8 +123,8 @@ describe('GroupSettingsModal Component', () => {
 
     await user.clear(nameInput);
     // fireEvent.submit on form because button isn't disabled but form has 'required'
-    fireEvent.submit(formElement!); 
-    
+    fireEvent.submit(formElement!);
+
     expect(mockOnSave).not.toHaveBeenCalled();
     // No specific error message is shown by this component for this case, relies on browser validation
     expect(mockOnClose).not.toHaveBeenCalled();
@@ -150,12 +150,12 @@ describe('GroupSettingsModal Component', () => {
     const nameInput = screen.getByLabelText('Group Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
     const longName = 'a'.repeat(31);
-    
+
     // Test input's maxLength attribute
     await user.clear(nameInput);
     await user.type(nameInput, longName);
     expect((nameInput as HTMLInputElement).value).toBe('a'.repeat(30));
-    
+
     // Submit the capped (valid) value
     await user.click(saveButton);
     expect(mockOnSave).toHaveBeenCalledWith(expect.objectContaining({ name: 'a'.repeat(30) }));
@@ -167,7 +167,7 @@ describe('GroupSettingsModal Component', () => {
     expect(mockOnSave).not.toHaveBeenCalled();
     // No specific error message shown by this component for this case in handleSubmit
   });
-  
+
   test('onSave is called if name is same as original (editing same group without name change)', async () => {
     const user = userEvent.setup();
     render(<GroupSettingsModal {...defaultProps} />);
@@ -180,7 +180,7 @@ describe('GroupSettingsModal Component', () => {
     await user.click(saveButton);
 
     expect(mockOnSave).toHaveBeenCalledTimes(1);
-    expect(mockOnSave).toHaveBeenCalledWith(mockEditingGroup); 
+    expect(mockOnSave).toHaveBeenCalledWith(mockEditingGroup);
   });
 
 
@@ -188,17 +188,17 @@ describe('GroupSettingsModal Component', () => {
     const user = userEvent.setup();
     render(<GroupSettingsModal {...defaultProps} />);
     const deleteButton = screen.getByTitle('Delete group');
-    
+
     await user.click(deleteButton);
-    
+
     expect(mockOnClose).toHaveBeenCalledTimes(1); // onClose is called first
     expect(confirmSpy).toHaveBeenCalledTimes(1);
-    expect(mockOnDelete).toHaveBeenCalledTimes(1); 
+    expect(mockOnDelete).toHaveBeenCalledTimes(1);
     // onDelete is called with the group ID, but the component calls it with no args.
     // The parent handler for onDelete should know which group it is.
     // The component's onDelete prop is `() => void`.
   });
-  
+
   test('Delete Group calls onClose but not onDelete if confirmation is cancelled', async () => {
     const user = userEvent.setup();
     confirmSpy.mockImplementationOnce(() => false); // Simulate user cancelling confirmation
@@ -207,7 +207,7 @@ describe('GroupSettingsModal Component', () => {
 
 
     await user.click(deleteButton);
-    
+
     expect(mockOnClose).toHaveBeenCalledTimes(1); // onClose is still called first
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(mockOnDelete).not.toHaveBeenCalled();
@@ -218,7 +218,7 @@ describe('GroupSettingsModal Component', () => {
     const deleteButton = screen.getByTitle('Delete group');
     expect(deleteButton).toBeDisabled();
   });
-  
+
   test('Delete Group button is enabled if more than one group exists', () => {
     render(<GroupSettingsModal {...defaultProps} groups={mockOtherGroups} />); // mockOtherGroups has 3 groups
     const deleteButton = screen.getByTitle('Delete group');
@@ -258,6 +258,6 @@ describe('GroupSettingsModal Component', () => {
     render(<GroupSettingsModal {...defaultProps} />);
     expect(screen.getByLabelText('Group Name')).toBeInTheDocument();
   });
-  
+
   // Removed focus on mount test as it's not implemented in this component
 });
