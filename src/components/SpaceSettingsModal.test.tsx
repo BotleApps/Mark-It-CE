@@ -20,15 +20,13 @@ const mockOtherSpaces: Space[] = [
 const mockSingleSpaceList: Space[] = [mockEditingSpace];
 
 describe('SpaceSettingsModal Component', () => {
-  let mockOnClose: jest.Mock;
+  const defaultTheme = 'light' as 'light' | 'dark'; // Moved defaultTheme here
+  let mockOnClose: jest.Mock; // These will be removed if tests are fully refactored later
   let mockOnSave: jest.Mock;
   let mockOnDelete: jest.Mock;
   let confirmSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    mockOnClose = jest.fn();
-    mockOnSave = jest.fn();
-    mockOnDelete = jest.fn();
     confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => true);
   });
 
@@ -36,29 +34,46 @@ describe('SpaceSettingsModal Component', () => {
     confirmSpy.mockRestore();
   });
 
-  const defaultProps = {
-    onClose: mockOnClose,
-    onSave: mockOnSave,
-    onDelete: mockOnDelete,
-    space: mockEditingSpace,
-    spaces: mockOtherSpaces,
-    theme: 'light' as 'light' | 'dark',
-  };
+  // Removed defaultProps to ensure all props are passed explicitly in each test
 
   test('renders correctly with pre-filled name, color picker, and buttons', () => {
-    render(<SpaceSettingsModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     expect(screen.getByText('Space Settings')).toBeInTheDocument();
     expect(screen.getByLabelText('Space Name')).toBeInTheDocument();
     expect(screen.getByDisplayValue(mockEditingSpace.name)).toBeInTheDocument();
-    expect(screen.getByLabelText('Space Color')).toBeInTheDocument();
+    expect(screen.getByText('Space Color')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
-    expect(screen.getByTitle('Delete space')).toBeInTheDocument(); // Changed selector
+    expect(screen.getByTitle('Delete space')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
   test('space name input field updates internal state', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Space Name') as HTMLInputElement;
 
     await user.clear(nameInput);
@@ -67,8 +82,20 @@ describe('SpaceSettingsModal Component', () => {
   });
 
   test('ColorPicker interaction (simulated) results in current color being saved', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     // This test ensures that the color state (even if not changed by mock interaction here)
     // is correctly included in the onSave payload.
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
@@ -83,8 +110,20 @@ describe('SpaceSettingsModal Component', () => {
   });
 
   test('Save Changes button calls onSave with updated data when input is valid', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
@@ -103,22 +142,44 @@ describe('SpaceSettingsModal Component', () => {
 
   // Validation Tests
   test('does not call onSave if name is empty', async () => {
-    // const user = userEvent.setup(); // Not needed if only using fireEvent for form
-    render(<SpaceSettingsModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    const user = userEvent.setup(); // Use userEvent for consistency
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Space Name') as HTMLInputElement;
-    // const saveButton = screen.getByRole('button', { name: 'Save Changes' }); // Not directly used for submit
-    const formElement = screen.getByRole('form'); // Get form by its implicit role
+    const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
-    // Clear input using fireEvent as userEvent.clear might be slow or focus dependent here
-    fireEvent.change(nameInput, { target: { value: '' } });
-    fireEvent.submit(formElement); // Test form submission with required field empty
+    await user.clear(nameInput);
+    await user.click(saveButton); // Attempt to submit with empty name
 
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
   test('does not call onSave if name is only whitespace', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
@@ -130,8 +191,20 @@ describe('SpaceSettingsModal Component', () => {
   });
 
   test('does not call onSave if name exceeds 30 characters (handler validation)', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Space Name') as HTMLInputElement;
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
     const longName = 'a'.repeat(31);
@@ -152,8 +225,20 @@ describe('SpaceSettingsModal Component', () => {
   });
 
   test('onSave is called if name is same as original (editing same space without name change)', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
@@ -166,53 +251,128 @@ describe('SpaceSettingsModal Component', () => {
   });
 
   test('Delete Space button calls onClose then onDelete after confirmation', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
-    const deleteButton = screen.getByTitle('Delete space'); // Changed selector
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
+    const deleteButton = screen.getByTitle('Delete space');
 
     await user.click(deleteButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
+    confirmSpy.mockRestore();
   });
 
   test('Delete Space calls onClose but not onDelete if confirmation is cancelled', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => false);
     const user = userEvent.setup();
-    confirmSpy.mockImplementationOnce(() => false);
-    render(<SpaceSettingsModal {...defaultProps} />);
-    const deleteButton = screen.getByTitle('Delete space'); // Changed selector
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
+    const deleteButton = screen.getByTitle('Delete space');
 
     await user.click(deleteButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(mockOnDelete).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
   });
 
   test('Delete Space button is disabled if only one space exists', () => {
-    render(<SpaceSettingsModal {...defaultProps} spaces={mockSingleSpaceList} />);
-    const deleteButton = screen.getByTitle('Delete space'); // Changed selector
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockSingleSpaceList}
+        theme={defaultTheme}
+      />
+    );
+    const deleteButton = screen.getByTitle('Delete space');
     expect(deleteButton).toBeDisabled();
   });
 
   test('Delete Space button is enabled if more than one space exists', () => {
-    render(<SpaceSettingsModal {...defaultProps} spaces={mockOtherSpaces} />);
-    const deleteButton = screen.getByTitle('Delete space'); // Changed selector
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
+    const deleteButton = screen.getByTitle('Delete space');
     expect(deleteButton).not.toBeDisabled();
   });
 
   test('Cancel button calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     await user.click(cancelButton);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   test('Clicking the backdrop calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    const { container } = render(<SpaceSettingsModal {...defaultProps} />);
+    const { container } = render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     // eslint-disable-next-line testing-library/no-node-access -- Reaching for modal root for backdrop click
     const backdrop = container.firstChild as HTMLElement;
     expect(backdrop).toBeInTheDocument();
@@ -222,15 +382,39 @@ describe('SpaceSettingsModal Component', () => {
   });
 
   test('Escape key calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<SpaceSettingsModal {...defaultProps} />);
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     screen.getByLabelText('Space Name').focus(); // Focus an element inside for Escape to be caught
     await user.keyboard('{escape}');
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   test('Input has associated label for accessibility', () => {
-    render(<SpaceSettingsModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <SpaceSettingsModal
+        space={mockEditingSpace}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        spaces={mockOtherSpaces}
+        theme={defaultTheme}
+      />
+    );
     expect(screen.getByLabelText('Space Name')).toBeInTheDocument();
   });
 });

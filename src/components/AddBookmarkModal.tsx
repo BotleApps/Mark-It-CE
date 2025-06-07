@@ -15,31 +15,44 @@ export function AddBookmarkModal({ onClose, onSave, groupId, spaceId, theme }: A
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const modalContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (titleInputRef.current) {
       titleInputRef.current.focus();
     }
-  }, []);
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose]);
 
-  const handleSubmit = (_e: React.SyntheticEvent) => { // Changed e to _e, and type to React.SyntheticEvent
-    _e.preventDefault();
+  const handleSubmit = (event: React.SyntheticEvent) => {
+    event.preventDefault();
+
     if (!title.trim()) {
       setError('Title is required.');
       return;
     }
+
     if (!url.trim()) {
       setError('URL is required.');
       return;
     }
+
     try {
       new URL(url);
+      setError(''); // Clear any previous error
       onSave({
         title,
         url,
         createdAt: new Date().toISOString(),
       }, groupId, spaceId);
-      setError('');
       onClose();
     } catch (e) {
       setError('Invalid URL.');
@@ -52,9 +65,20 @@ export function AddBookmarkModal({ onClose, onSave, groupId, spaceId, theme }: A
     }
   };
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={`rounded-lg w-[500px] p-6 ${
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={handleBackdropClick}
+    >
+      <div
+        ref={modalContentRef}
+        className={`rounded-lg w-[500px] p-6 ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between mb-6">
@@ -77,14 +101,15 @@ export function AddBookmarkModal({ onClose, onSave, groupId, spaceId, theme }: A
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="mb-4">
-            <label className={`block text-sm font-medium mb-2 ${
+            <label htmlFor="bookmarkTitleInput" className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
             }`}>
               Title
             </label>
             <input
+              id="bookmarkTitleInput"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -100,12 +125,13 @@ export function AddBookmarkModal({ onClose, onSave, groupId, spaceId, theme }: A
           </div>
 
           <div className="mb-6">
-            <label className={`block text-sm font-medium mb-2 ${
+            <label htmlFor="bookmarkUrlInput" className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
             }`}>
               URL
             </label>
             <input
+              id="bookmarkUrlInput"
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}

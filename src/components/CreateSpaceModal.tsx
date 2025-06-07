@@ -13,14 +13,27 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
   const [name, setName] = useState('');
   const [color, setColor] = useState('#3B82F6');
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const modalContentRef = useRef<HTMLDivElement>(null); // Ref for the modal content
 
   useEffect(() => {
     if (nameInputRef.current) {
       nameInputRef.current.focus();
     }
-  }, []);
 
-  const handleSubmit = (_e: React.SyntheticEvent) => { // Changed e to _e and type
+    // Handle Escape key press
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscKey);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose]);
+
+  const handleSubmit = (_e: React.SyntheticEvent) => {
     _e.preventDefault();
     if (name.trim() && name.length <= 30) {
       onSave({
@@ -36,9 +49,21 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
     }
   };
 
+  // Handle backdrop click
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={`w-[400px] p-6 rounded-lg ${
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={handleBackdropClick} // Added backdrop click handler
+    >
+      <div
+        ref={modalContentRef} // Attach ref to modal content
+        className={`w-[400px] p-6 rounded-lg ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between mb-6">
@@ -61,12 +86,13 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
 
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className={`block text-sm font-medium mb-2 ${
+            <label htmlFor="spaceNameInput" className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
             }`}>
               Space Name
             </label>
             <input
+              id="spaceNameInput"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}

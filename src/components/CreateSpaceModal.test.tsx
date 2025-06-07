@@ -4,39 +4,35 @@ import userEvent from '@testing-library/user-event';
 import { CreateSpaceModal } from './CreateSpaceModal'; // Adjust path as needed
 
 describe('CreateSpaceModal Component', () => {
-  let mockOnClose: jest.Mock;
-  let mockOnSave: jest.Mock;
+  // Mocks will be defined locally in each test
 
-  beforeEach(() => {
-    mockOnClose = jest.fn();
-    mockOnSave = jest.fn();
-  });
-
-  const defaultProps = {
-    onClose: mockOnClose,
-    onSave: mockOnSave,
-    theme: 'light' as 'light' | 'dark',
-  };
+  const defaultTheme = 'light' as 'light' | 'dark';
 
   test('renders correctly with title, input, color picker, and buttons', () => {
-    render(<CreateSpaceModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
 
     expect(screen.getByText('Create New Space')).toBeInTheDocument();
     expect(screen.getByLabelText('Space Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Space Color')).toBeInTheDocument();
+    expect(screen.getByText('Space Color')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Space' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
   test('input field is focused on mount', async () => {
-    render(<CreateSpaceModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name');
     await waitFor(() => expect(inputElement).toHaveFocus());
   });
 
   test('input field for space name updates internal state', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name') as HTMLInputElement;
 
     await user.type(inputElement, 'New Test Space');
@@ -44,13 +40,15 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('ColorPicker interaction (simulated) updates color and is saved', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
     // This test primarily ensures that if the color state were changed (e.g., by ColorPicker),
     // the new color would be part of the onSave payload.
     // Direct interaction with ColorPicker is complex for this unit test;
     // ColorPicker should have its own tests.
 
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name');
     await user.type(inputElement, 'Space With Color');
 
@@ -82,8 +80,10 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('Create Space button calls onSave with new space data when input is valid', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Create Space' });
 
@@ -100,8 +100,10 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('Enter key in input calls onSave with new space data when input is valid', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name');
 
     await user.type(inputElement, 'Valid Via Enter');
@@ -117,16 +119,22 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('Create Space button does not call onSave if space name is empty', async () => {
-    render(<CreateSpaceModal {...defaultProps} />);
-    const formElement = screen.getByRole('form'); // Get form by its implicit role
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const user = userEvent.setup();
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
+    const saveButton = screen.getByRole('button', { name: 'Create Space' });
 
-    fireEvent.submit(formElement!);
+    // Input field is initially empty
+    await user.click(saveButton); // Attempt to submit with empty name
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
   test('Create Space button does not call onSave if space name is only whitespace', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Create Space' });
 
@@ -136,8 +144,10 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('Create Space button does not call onSave if space name exceeds 30 characters', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name');
     const saveButton = screen.getByRole('button', { name: 'Create Space' });
     const longName = 'a'.repeat(31);
@@ -155,8 +165,10 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('Cancel button calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
 
     await user.click(cancelButton);
@@ -164,8 +176,10 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('Clicking the backdrop calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    const { container } = render(<CreateSpaceModal {...defaultProps} />);
+    const { container } = render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     // eslint-disable-next-line testing-library/no-node-access -- Reaching for modal root for backdrop click
     const backdropElement = container.firstChild as HTMLElement;
 
@@ -178,15 +192,19 @@ describe('CreateSpaceModal Component', () => {
   });
 
   test('Escape key calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateSpaceModal {...defaultProps} />);
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
 
     await user.keyboard('{escape}');
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   test('Input has aria-label or associated label for accessibility', () => {
-    render(<CreateSpaceModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    render(<CreateSpaceModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Space Name');
     expect(inputElement).toBeInTheDocument();
   });

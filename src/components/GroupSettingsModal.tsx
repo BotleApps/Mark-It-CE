@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Trash } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import type { BookmarkGroup } from '../types';
@@ -15,6 +15,27 @@ interface GroupSettingsModalProps {
 export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups, theme }: GroupSettingsModalProps) {
   const [name, setName] = useState(group.name);
   const [color, setColor] = useState(group.color);
+  const modalContentRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null); // For focusing
+
+  useEffect(() => {
+    // Handle Escape key press
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscKey);
+
+    // Focus the name input on mount
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +58,20 @@ export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups, t
 
   const isDeleteDisabled = groups?.length <= 1;
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={`w-[400px] p-6 rounded-lg relative ${
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={handleBackdropClick}
+    >
+      <div
+        ref={modalContentRef}
+        className={`w-[400px] p-6 rounded-lg relative ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between mb-6">
@@ -62,12 +94,14 @@ export function GroupSettingsModal({ group, onClose, onSave, onDelete, groups, t
 
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className={`block text-sm font-medium mb-2 ${
+            <label htmlFor="groupNameInput" className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
             }`}>
               Group Name
             </label>
             <input
+              id="groupNameInput"
+              ref={nameInputRef} // Attach ref for focusing
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}

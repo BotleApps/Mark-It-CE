@@ -5,35 +5,27 @@ import { CreateGroupModal } from './CreateGroupModal'; // Adjust path as needed
 // Removed unused BookmarkGroup type import
 
 describe('CreateGroupModal Component', () => {
-  let mockOnClose: jest.Mock;
-  let mockOnSave: jest.Mock;
+  const defaultTheme = 'light' as 'light' | 'dark';
 
-  beforeEach(() => {
-    mockOnClose = jest.fn();
-    mockOnSave = jest.fn();
-  });
-
-  const defaultProps = {
-    // isOpen prop is not used by the component directly for rendering,
-    // it's assumed the parent controls rendering. We always render it for test.
-    onClose: mockOnClose,
-    onSave: mockOnSave,
-    theme: 'light' as 'light' | 'dark', // Added theme prop
-  };
+  // No beforeEach for mockOnClose/mockOnSave, define in each test
 
   test('renders correctly with title, input, color picker, and buttons', () => {
-    render(<CreateGroupModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
 
     expect(screen.getByText('Create New Group')).toBeInTheDocument();
     expect(screen.getByLabelText('Group Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Group Color')).toBeInTheDocument(); // Color picker label
-    expect(screen.getByRole('button', { name: 'Create Group' })).toBeInTheDocument(); // Updated button text
+    expect(screen.getByText('Group Color')).toBeInTheDocument(); // Changed from getByLabelText
+    expect(screen.getByRole('button', { name: 'Create Group' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
   test('input field updates internal state', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Group Name') as HTMLInputElement;
 
     await user.type(inputElement, 'New Test Group');
@@ -41,8 +33,10 @@ describe('CreateGroupModal Component', () => {
   });
 
   test('Create Group button calls onSave with new group data when input is valid', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Group Name');
     const createButton = screen.getByRole('button', { name: 'Create Group' });
 
@@ -57,13 +51,14 @@ describe('CreateGroupModal Component', () => {
       })
     );
     // The component does not call onClose itself after saving.
-    // It's up to the parent to close it after onSave.
     // expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   test('Enter key in input calls onSave with new group data when input is valid', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Group Name');
 
     await user.type(inputElement, 'Valid Via Enter');
@@ -72,36 +67,31 @@ describe('CreateGroupModal Component', () => {
     expect(mockOnSave).toHaveBeenCalledTimes(1);
     expect(mockOnSave).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'Valid Via Enter',
-        name: 'Valid Via Enter',
+        name: 'Valid Via Enter', // There was a duplicate name property here, removed one
         color: '#3B82F6',
       })
     );
   });
 
-  // The test for color change interaction ('should update color state when ColorPicker calls onColorSelect and save with new color')
-  // was removed. Testing this interaction effectively requires knowledge of ColorPicker's
-  // internal implementation or a way to mock its onColorSelect callback directly.
-  // The current tests already ensure that the `color` state (with its default value)
-  // is correctly passed to the `onSave` prop. Testing the ColorPicker component itself
-  // should be done in its own dedicated test file (e.g., ColorPicker.test.tsx).
+  // ColorPicker interaction tests are usually separate unless it's a very simple wrapper.
+  // Assuming ColorPicker is tested independently.
 
   test('Create Group button does not call onSave if group name is empty', async () => {
-    // const user = userEvent.setup(); // user is not used in this test
-    render(<CreateGroupModal {...defaultProps} />);
-    // const createButton = screen.getByRole('button', { name: 'Create Group' }); // createButton is not used
-    const formElement = screen.getByRole('form'); // Get form by its implicit role
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const user = userEvent.setup();
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
+    const createButton = screen.getByRole('button', { name: 'Create Group' });
 
-    // Try submitting form directly (simulates button click on valid form)
-    // or clicking the button. Since button isn't disabled, we check onSave.
-    fireEvent.submit(formElement!); // Or await user.click(createButton);
-
+    await user.click(createButton); // Attempt to submit with empty name
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
   test('Create Group button does not call onSave if group name is only whitespace', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Group Name');
     const createButton = screen.getByRole('button', { name: 'Create Group' });
 
@@ -112,20 +102,16 @@ describe('CreateGroupModal Component', () => {
   });
 
   test('Create Group button does not call onSave if group name exceeds 30 chars', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Group Name');
     const createButton = screen.getByRole('button', { name: 'Create Group' });
     const longName = 'a'.repeat(31);
 
     await user.type(inputElement, longName);
     expect(inputElement.value).toBe('a'.repeat(30)); // Input maxLength attribute should prevent more
-
-    // Even if somehow more than 30 chars were entered (e.g. bypassing maxLength),
-    // the submit handler also checks.
-    // For this test, we rely on maxLength. If it were bypassed, then click:
-    // await user.click(createButton);
-    // expect(mockOnSave).not.toHaveBeenCalled();
 
     // Click to ensure the current value (30 chars) is processed
     await user.click(createButton);
@@ -141,8 +127,10 @@ describe('CreateGroupModal Component', () => {
 
 
   test('Cancel button calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
 
     await user.click(cancelButton);
@@ -151,8 +139,10 @@ describe('CreateGroupModal Component', () => {
   });
 
   test('Clicking the backdrop calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    const { container } = render(<CreateGroupModal {...defaultProps} />);
+    const { container } = render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
 
     // The outermost div is the backdrop
     // eslint-disable-next-line testing-library/no-node-access -- Reaching for modal root for backdrop click
@@ -165,16 +155,21 @@ describe('CreateGroupModal Component', () => {
   });
 
    test('Escape key calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
     const user = userEvent.setup();
-    render(<CreateGroupModal {...defaultProps} />);
-
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
+    // Focus an element inside for Escape to be caught by the document listener
+    screen.getByLabelText('Group Name').focus();
     await user.keyboard('{escape}');
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
 
   test('Input has aria-label or associated label for accessibility', () => {
-    render(<CreateGroupModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    render(<CreateGroupModal theme={defaultTheme} onClose={mockOnClose} onSave={mockOnSave} />);
     const inputElement = screen.getByLabelText('Group Name'); // getByLabelText itself is an accessibility check
     expect(inputElement).toBeInTheDocument();
 

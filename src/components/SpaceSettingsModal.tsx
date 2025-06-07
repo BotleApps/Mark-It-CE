@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Trash } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import type { Space } from '../types';
@@ -15,11 +15,30 @@ interface SpaceSettingsModalProps {
 export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, spaces }: SpaceSettingsModalProps) {
   const [name, setName] = useState(space.name);
   const [color, setColor] = useState(space.color);
+  const modalContentRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Log the spaces prop to check its value
   useEffect(() => {
+    // Focus input on mount
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+
+    // Handle Escape key press
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscKey);
+
+    // Log the spaces prop to check its value (can be kept or removed)
     console.log('Spaces:', spaces);
-  }, [spaces]);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose, spaces]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,9 +62,20 @@ export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, sp
   // Ensure spaces is an array before checking its length
   const isDeleteDisabled = !Array.isArray(spaces) || spaces.length <= 1;
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={`w-[400px] p-6 rounded-lg relative ${
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={handleBackdropClick}
+    >
+      <div
+        ref={modalContentRef}
+        className={`w-[400px] p-6 rounded-lg relative ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between mb-6">
@@ -68,12 +98,14 @@ export function SpaceSettingsModal({ space, onClose, onSave, onDelete, theme, sp
 
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className={`block text-sm font-medium mb-2 ${
+            <label htmlFor="spaceNameInput" className={`block text-sm font-medium mb-2 ${
               theme === 'dark' ? 'text-gray-200' : 'text-gray-700'
             }`}>
               Space Name
             </label>
             <input
+              id="spaceNameInput"
+              ref={nameInputRef}
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}

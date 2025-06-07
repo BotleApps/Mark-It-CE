@@ -22,16 +22,12 @@ const mockSingleGroupList: BookmarkGroup[] = [mockEditingGroup];
 
 
 describe('GroupSettingsModal Component', () => {
-  let mockOnClose: jest.Mock;
-  let mockOnSave: jest.Mock;
-  let mockOnDelete: jest.Mock;
+  const defaultTheme = 'light' as 'light' | 'dark';
   let confirmSpy: jest.SpyInstance;
 
-
   beforeEach(() => {
-    mockOnClose = jest.fn();
-    mockOnSave = jest.fn();
-    mockOnDelete = jest.fn();
+    // confirmSpy is the only thing that needs to be reset for each test if it's changed.
+    // Mocks for callbacks will be fresh for each test.
     confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => true);
   });
 
@@ -39,30 +35,44 @@ describe('GroupSettingsModal Component', () => {
     confirmSpy.mockRestore();
   });
 
-  const defaultProps = {
-    // isOpen prop is not used by the component, parent controls rendering
-    onClose: mockOnClose,
-    onSave: mockOnSave,
-    onDelete: mockOnDelete,
-    group: mockEditingGroup,
-    groups: mockOtherGroups,
-    theme: 'light' as 'light' | 'dark',
-  };
-
   test('renders correctly with pre-filled name, color picker, and buttons', () => {
-    render(<GroupSettingsModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     expect(screen.getByText('Group Settings')).toBeInTheDocument();
     expect(screen.getByLabelText('Group Name')).toBeInTheDocument();
     expect(screen.getByDisplayValue(mockEditingGroup.name)).toBeInTheDocument();
-    expect(screen.getByLabelText('Group Color')).toBeInTheDocument();
+    expect(screen.getByText('Group Color')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
     expect(screen.getByTitle('Delete group')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 
   test('group name input field updates internal state', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Group Name') as HTMLInputElement;
 
     await user.clear(nameInput);
@@ -71,8 +81,20 @@ describe('GroupSettingsModal Component', () => {
   });
 
   test('ColorPicker interaction (simulated) updates color and is saved', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     // Similar to other modals, direct ColorPicker interaction is complex to test here.
     // We ensure the existing color state is used for saving.
     // A dedicated test for ColorPicker component would cover its functionality.
@@ -93,8 +115,20 @@ describe('GroupSettingsModal Component', () => {
 
 
   test('Save Changes button calls onSave with updated data when input is valid', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Group Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
@@ -114,16 +148,26 @@ describe('GroupSettingsModal Component', () => {
 
   // Validation Tests
   test('does not call onSave if name is empty', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Group Name');
-    // const saveButton = screen.getByRole('button', { name: 'Save Changes' }); // Not directly used for submit event
-    const formElement = screen.getByRole('form'); // Get form by its implicit role
+    const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
 
     await user.clear(nameInput);
-    // fireEvent.submit on form because button isn't disabled but form has 'required'
-    fireEvent.submit(formElement!);
+    await user.click(saveButton); // Attempt to submit with empty name via button
 
     expect(mockOnSave).not.toHaveBeenCalled();
     // No specific error message is shown by this component for this case, relies on browser validation
@@ -131,8 +175,20 @@ describe('GroupSettingsModal Component', () => {
   });
 
   test('does not call onSave if name is only whitespace', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Group Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
@@ -145,8 +201,20 @@ describe('GroupSettingsModal Component', () => {
   });
 
   test('does not call onSave if name exceeds 30 characters (handler validation)', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Group Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
     const longName = 'a'.repeat(31);
@@ -169,8 +237,20 @@ describe('GroupSettingsModal Component', () => {
   });
 
   test('onSave is called if name is same as original (editing same group without name change)', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const nameInput = screen.getByLabelText('Group Name');
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
 
@@ -185,8 +265,21 @@ describe('GroupSettingsModal Component', () => {
 
 
   test('Delete Group button calls onClose then onDelete after confirmation', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const deleteButton = screen.getByTitle('Delete group');
 
     await user.click(deleteButton);
@@ -194,15 +287,28 @@ describe('GroupSettingsModal Component', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1); // onClose is called first
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(mockOnDelete).toHaveBeenCalledTimes(1);
+    confirmSpy.mockRestore();
     // onDelete is called with the group ID, but the component calls it with no args.
     // The parent handler for onDelete should know which group it is.
     // The component's onDelete prop is `() => void`.
   });
 
   test('Delete Group calls onClose but not onDelete if confirmation is cancelled', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => false);
     const user = userEvent.setup();
-    confirmSpy.mockImplementationOnce(() => false); // Simulate user cancelling confirmation
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const deleteButton = screen.getByTitle('Delete group');
 
 
@@ -211,32 +317,81 @@ describe('GroupSettingsModal Component', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1); // onClose is still called first
     expect(confirmSpy).toHaveBeenCalledTimes(1);
     expect(mockOnDelete).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
   });
 
   test('Delete Group button is disabled if only one group exists', () => {
-    render(<GroupSettingsModal {...defaultProps} groups={mockSingleGroupList} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockSingleGroupList}
+        theme={defaultTheme}
+      />
+    );
     const deleteButton = screen.getByTitle('Delete group');
     expect(deleteButton).toBeDisabled();
   });
 
   test('Delete Group button is enabled if more than one group exists', () => {
-    render(<GroupSettingsModal {...defaultProps} groups={mockOtherGroups} />); // mockOtherGroups has 3 groups
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups} // mockOtherGroups has 3 groups
+        theme={defaultTheme}
+      />
+    );
     const deleteButton = screen.getByTitle('Delete group');
     expect(deleteButton).not.toBeDisabled();
   });
 
 
   test('Cancel button calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     await user.click(cancelButton);
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   test('Clicking the backdrop calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    const { container } = render(<GroupSettingsModal {...defaultProps} />);
+    const { container } = render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     // eslint-disable-next-line testing-library/no-node-access -- Reaching for modal root for backdrop click
     const backdrop = container.firstChild as HTMLElement;
     expect(backdrop).toBeInTheDocument();
@@ -246,8 +401,20 @@ describe('GroupSettingsModal Component', () => {
   });
 
   test('Escape key calls onClose', async () => {
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
     const user = userEvent.setup();
-    render(<GroupSettingsModal {...defaultProps} />);
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     // An element within the modal needs focus for Escape key to be typically handled by the modal
     screen.getByLabelText('Group Name').focus();
     await user.keyboard('{escape}');
@@ -255,9 +422,21 @@ describe('GroupSettingsModal Component', () => {
   });
 
   test('Input has associated label for accessibility', () => {
-    render(<GroupSettingsModal {...defaultProps} />);
+    const mockOnClose = jest.fn();
+    const mockOnSave = jest.fn();
+    const mockOnDelete = jest.fn();
+    render(
+      <GroupSettingsModal
+        group={mockEditingGroup}
+        onClose={mockOnClose}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        groups={mockOtherGroups}
+        theme={defaultTheme}
+      />
+    );
     expect(screen.getByLabelText('Group Name')).toBeInTheDocument();
   });
 
-  // Removed focus on mount test as it's not implemented in this component
+  // Removed focus on mount test as it's not implemented in this component unless explicitly added in useEffect
 });
