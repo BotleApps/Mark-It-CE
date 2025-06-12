@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronUp, ChevronDown, Trash2, Settings, Plus } from 'lucide-react';
+import { ArrowUpRight, ChevronUp, ChevronDown, Trash2, Settings, Plus } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import { BookmarkTile } from './BookmarkTile';
 import type { BookmarkGroup as BookmarkGroupType, Bookmark, LinkTarget } from '../types';
@@ -52,6 +52,14 @@ export function BookmarkGroup({
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const openAllLinks = () => {
+    group.bookmarks.forEach((bookmark) => {
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        chrome.tabs.create({ url: bookmark.url });
+      }
+    });
   };
 
   const handleMoveBookmark = (index: number, direction: 'left' | 'right') => {
@@ -118,6 +126,14 @@ export function BookmarkGroup({
         </h3>
 
         <div className="flex items-center gap-2">
+          <button
+              onClick={openAllLinks}
+              className={`p-1.5 rounded-full hover:bg-white/10 ${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-600'
+              }`}
+              title="Open all bookmarks"
+          >
+            <ArrowUpRight className="w-4 h-4" />
+          </button>
           <button
             onClick={() => onHandleMoveGroup('up')}
             disabled={isFirst}
