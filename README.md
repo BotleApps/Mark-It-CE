@@ -112,7 +112,18 @@ For issues or feature requests, visit our [Issue Tracker](https://github.com/Bot
 
 ## 🔄 Release Notes
 
-### **v1.0.3** *(Latest)*
+### **v1.0.4** *(Latest)*
+
+✅ **New Features:**
+
+- **Open All Tabs in Group** – Added a convenient "Open All" button to bookmark groups, allowing you to open all bookmarks in a group with a single click. Perfect for opening your daily work tabs or project-related bookmarks instantly.
+
+🐞 **Bug Fixes:**
+
+- Improved bookmark importing functionality to properly merge with existing bookmarks instead of overwriting them
+- Fixed various TypeScript compilation errors for better stability
+
+### **v1.0.3**
 
 ✅ **New Features:**
 

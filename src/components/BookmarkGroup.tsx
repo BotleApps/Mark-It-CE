@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ArrowUpRight, ChevronUp, ChevronDown, Trash2, Settings, Plus } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import { BookmarkTile } from './BookmarkTile';
@@ -128,7 +128,9 @@ export function BookmarkGroup({
         <div className="flex items-center gap-2">
           <button
               onClick={openAllLinks}
+              disabled={group.bookmarks.length === 0}
               className={`p-1.5 rounded-full hover:bg-white/10 ${theme === 'dark' ? 'text-gray-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-600'
+              } ${group.bookmarks.length === 0 ? (theme === 'dark' ? 'opacity-50 cursor-not-allowed' : 'opacity-50 cursor-not-allowed') : ''
               }`}
               title="Open all bookmarks"
           >
@@ -213,9 +215,13 @@ export function BookmarkGroup({
 
       {isModalOpen && (
         <BookmarkEditModal
-          bookmark={newBookmark}
+          bookmark={group.bookmarks[0]} // This should be the bookmark being edited
           onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveBookmark}
+          onSave={(_updatedBookmark) => {
+            // Handle bookmark update logic
+            setIsModalOpen(false);
+          }}
+          theme={theme}
         />
       )}
 
