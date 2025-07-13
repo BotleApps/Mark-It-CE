@@ -1,0 +1,64 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Lint code
+      run: npm run lint
+      
+    - name: Type check
+      run: npx tsc --noEmit
+      
+    - name: Build extension
+      run: npm run build
+      
+    - name: Verify build output
+      run: |
+        echo "Checking required files in dist/:"
+        test -f dist/manifest.json && echo "✅ manifest.json"
+        test -f dist/index.html && echo "✅ index.html"
+        test -f dist/popup.html && echo "✅ popup.html"
+        test -f dist/popup.js && echo "✅ popup.js"
+        test -f dist/main.js && echo "✅ main.js"
+        test -f dist/style.css && echo "✅ style.css"
+        test -d dist/icons && echo "✅ icons directory"
+        
+        echo "Checking manifest version matches package.json:"
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        MANIFEST_VERSION=$(node -p "require('./dist/manifest.json').version")
+        echo "Package.json version: $PACKAGE_VERSION"
+        echo "Manifest.json version: $MANIFEST_VERSION"
+        
+        if [ "$PACKAGE_VERSION" = "$MANIFEST_VERSION" ]; then
+          echo "✅ Versions match"
+        else
+          echo "❌ Version mismatch!"
+          exit 1
+        fi
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-build-${{ github.sha }}
+        path: dist/
+        retention-days: 7
