@@ -99,6 +99,20 @@ npm run lint
 npm run test
 ```
 
+### 📦 Packaging for Chrome Web Store
+
+```sh
+npm run package
+```
+
+### 🚀 Automated Publishing Setup
+
+```sh
+npm run setup-webstore
+```
+
+For detailed publishing instructions, see [PUBLISHING.md](docs/PUBLISHING.md).
+
 ### 🤝 Contributing
 
 Contributions are always welcome! To get started:
