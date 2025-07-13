@@ -13,6 +13,7 @@
 
 - **Create, Edit & Delete Bookmarks** – Easily manage your saved links.
 - **Move Bookmarks** – Organize bookmarks within groups with drag-and-drop.
+- **Quick Save Popup** – Click the extension icon to instantly save the current tab as a bookmark.
 
 ### 📂 Bookmark Group Management
 
@@ -112,7 +113,17 @@ For issues or feature requests, visit our [Issue Tracker](https://github.com/Bot
 
 ## 🔄 Release Notes
 
-### **v1.0.4** *(Latest)*
+### **v1.0.5** *(Latest)*
+
+✅ **New Features:**
+
+- **Quick Save Popup** – Click the extension icon to instantly save the current tab as a bookmark. Choose your space and group directly from the popup without opening the main manager.
+
+🐞 **Bug Fixes:**
+
+- Enhanced UI/UX with better button states (disabled when no bookmarks in group)
+
+### **v1.0.4**
 
 ✅ **New Features:**
 

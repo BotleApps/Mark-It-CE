@@ -1,11 +1,11 @@
 {
   "name": "mark-it-memory-manager",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp manifest.json dist/ && mkdir -p dist/icons && cp icons/* dist/icons/",
+    "build": "vite build && cp manifest.json dist/ && cp popup.html dist/ && cp popup.js dist/ && mkdir -p dist/icons && cp icons/* dist/icons/",
     "lint": "eslint .",
     "preview": "vite preview"
   },
