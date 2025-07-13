@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
-import type { ChromeBookmarkFolder, Space, BookmarkGroup } from '../types';
+import type { Space, BookmarkGroup } from '../types';
 
 interface FirstTimeSetupProps {
   onComplete: (folderIds: string[]) => void;
@@ -8,9 +8,13 @@ interface FirstTimeSetupProps {
   theme: 'light' | 'dark';
 }
 
-interface FolderNode extends ChromeBookmarkFolder {
+interface FolderNode {
+  id: string;
+  title: string;
+  children: FolderNode[];
   isExpanded?: boolean;
   level: number;
+  selected?: boolean;
 }
 
 export function FirstTimeSetup({ onComplete, onSkip, theme }: FirstTimeSetupProps) {

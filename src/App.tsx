@@ -71,7 +71,7 @@ function App() {
     activeSpace,
     async (tab, groupId) => {
       try {
-        const bookmarkData = await handleBookmarkTab(tab, groupId);
+        const bookmarkData = await handleBookmarkTab(tab);
         await handleAddBookmark(activeSpace.id, groupId, bookmarkData);
       } catch (error) {
         console.error('Failed to create bookmark:', error);
