@@ -1,28 +1,130 @@
-name: Build and Publish Chrome Extension
+name: Production Deploy - Auto Version & Publish
 
 on:
   push:
-    tags:
-      - 'v*'  # Trigger on version tags like v1.0.5
-  workflow_dispatch:  # Allow manual trigger
+    branches: [ main ]
+  workflow_dispatch:
     inputs:
-      publish:
-        description: 'Publish to Chrome Web Store'
+      bump-type:
+        description: 'Version bump type'
         required: true
-        default: 'false'
+        default: 'patch'
         type: choice
         options:
-          - 'true'
-          - 'false'
+          - 'major'
+          - 'minor' 
+          - 'patch'
+      skip-publish:
+        description: 'Skip Chrome Web Store publishing'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
-  build:
+  auto-version:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      new-version: ${{ steps.bump.outputs.new-version }}
+      version-changed: ${{ steps.bump.outputs.version-changed }}
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+    - name: Auto-bump version
+      id: bump
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "📋 Current version: $CURRENT_VERSION"
+        
+        # Determine bump type
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          BUMP_TYPE="${{ github.event.inputs.bump-type }}"
+          echo "🎯 Manual bump type: $BUMP_TYPE"
+        else
+          # Auto-detect from recent commits
+          COMMITS=$(git log --oneline --no-merges HEAD~5..HEAD)
+          echo "📝 Recent commits:"
+          echo "$COMMITS"
+          
+          if echo "$COMMITS" | grep -qE "(BREAKING|major|Major|MAJOR)"; then
+            BUMP_TYPE="major"
+          elif echo "$COMMITS" | grep -qE "(feat|feature|Feature|FEATURE|minor|Minor|MINOR)"; then
+            BUMP_TYPE="minor"
+          else
+            BUMP_TYPE="patch"
+          fi
+          echo "🔍 Auto-detected bump type: $BUMP_TYPE"
+        fi
+        
+        # Bump version
+        case $BUMP_TYPE in
+          "major")
+            NEW_VERSION=$(npm version major --no-git-tag-version)
+            ;;
+          "minor")
+            NEW_VERSION=$(npm version minor --no-git-tag-version)
+            ;;
+          "patch")
+            NEW_VERSION=$(npm version patch --no-git-tag-version)
+            ;;
+        esac
+        
+        NEW_VERSION_NUMBER=$(echo $NEW_VERSION | sed 's/v//')
+        echo "🚀 New version: $NEW_VERSION_NUMBER"
+        
+        # Update manifest.json
+        node -e "
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+          manifest.version = '$NEW_VERSION_NUMBER';
+          fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
+          console.log('✅ Updated manifest.json to version $NEW_VERSION_NUMBER');
+        "
+        
+        # Check if version actually changed
+        if [ "$CURRENT_VERSION" = "$NEW_VERSION_NUMBER" ]; then
+          echo "version-changed=false" >> $GITHUB_OUTPUT
+          echo "⚠️ Version unchanged, skipping deployment"
+        else
+          echo "version-changed=true" >> $GITHUB_OUTPUT
+          echo "new-version=$NEW_VERSION_NUMBER" >> $GITHUB_OUTPUT
+          
+          # Commit version changes
+          git add package.json manifest.json
+          git commit -m "chore: bump version to $NEW_VERSION_NUMBER [skip ci]"
+          git tag "v$NEW_VERSION_NUMBER"
+          git push origin main --tags
+          
+          echo "✅ Version bumped and tagged: v$NEW_VERSION_NUMBER"
+        fi
+
+  build-and-publish:
+    needs: auto-version
+    runs-on: ubuntu-latest
+    if: needs.auto-version.outputs.version-changed == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -32,97 +134,89 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Lint code
-      run: npm run lint
-      
+    - name: Run tests and linting
+      run: |
+        npm run lint
+        npx tsc --noEmit
+        
     - name: Build extension
       run: npm run build
       
-    - name: Verify build output
+    - name: Verify build
       run: |
-        echo "Build output:"
-        ls -la dist/
-        echo "Manifest version:"
-        cat dist/manifest.json | grep '"version"'
+        NEW_VERSION="${{ needs.auto-version.outputs.new-version }}"
+        echo "🔍 Verifying build for version $NEW_VERSION"
         
-    - name: Create extension zip
+        # Check all files exist
+        test -f dist/manifest.json || (echo "❌ manifest.json missing" && exit 1)
+        test -f dist/popup.html || (echo "❌ popup.html missing" && exit 1)
+        test -f dist/popup.js || (echo "❌ popup.js missing" && exit 1)
+        
+        # Verify version consistency
+        MANIFEST_VERSION=$(node -p "require('./dist/manifest.json').version")
+        if [ "$NEW_VERSION" != "$MANIFEST_VERSION" ]; then
+          echo "❌ Version mismatch: Expected $NEW_VERSION, got $MANIFEST_VERSION"
+          exit 1
+        fi
+        
+        echo "✅ Build verification passed"
+        
+    - name: Create extension package
       run: |
+        NEW_VERSION="${{ needs.auto-version.outputs.new-version }}"
         cd dist
-        zip -r ../extension-${{ github.ref_name || 'manual' }}.zip .
+        zip -r "../extension-v$NEW_VERSION.zip" . -x "*.DS_Store" "*/.*"
         cd ..
-        echo "Extension zip created:"
-        ls -la extension-*.zip
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: extension-build
-        path: |
-          extension-*.zip
-          dist/
-        retention-days: 30
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    if: |
-      (startsWith(github.ref, 'refs/tags/v') || 
-       (github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true'))
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: extension-build
+        echo "📦 Created extension-v$NEW_VERSION.zip"
         
     - name: Upload to Chrome Web Store
+      if: github.event.inputs.skip-publish != 'true'
       uses: mnao305/chrome-extension-upload@v5.0.0
       with:
-        file-path: extension-${{ github.ref_name || 'manual' }}.zip
+        file-path: extension-v${{ needs.auto-version.outputs.new-version }}.zip
         extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
         client-id: ${{ secrets.CHROME_CLIENT_ID }}
         client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
         refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        publish: true  # Automatically publish after upload
+        publish: true
         
     - name: Create GitHub Release
-      if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
-        files: extension-${{ github.ref_name }}.zip
+        tag_name: v${{ needs.auto-version.outputs.new-version }}
+        name: Mark-It-CE v${{ needs.auto-version.outputs.new-version }}
+        files: extension-v${{ needs.auto-version.outputs.new-version }}.zip
         generate_release_notes: true
         draft: false
         prerelease: false
         body: |
-          ## 🚀 Mark-It-CE ${{ github.ref_name }}
+          ## 🚀 Mark-It-CE v${{ needs.auto-version.outputs.new-version }}
           
-          This release has been automatically published to the Chrome Web Store.
+          This release has been automatically built and published to the Chrome Web Store.
           
           ### 📦 Installation
-          - Install from [Chrome Web Store](https://chromewebstore.google.com/detail/mark-it-memory-manager/ggpbonlpbpoimehcopnkeoklajdpkbho)
+          - **[Install from Chrome Web Store](https://chromewebstore.google.com/detail/mark-it-memory-manager/ggpbonlpbpoimehcopnkeoklajdpkbho)**
           - Or download the extension zip file below for manual installation
           
-          ### 🔄 Changes
+          ### 🔄 What's New
           See the [Release Notes](https://github.com/BotleApps/Mark-It-CE#-release-notes) for detailed changes.
+          
+          ---
+          *This release was automatically generated and published by GitHub Actions.*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  notify:
-    needs: [build, publish]
+  notify-success:
+    needs: [auto-version, build-and-publish]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && needs.auto-version.outputs.version-changed == 'true'
     
     steps:
-    - name: Notify Success
-      if: needs.publish.result == 'success'
+    - name: Notify deployment result
       run: |
-        echo "✅ Successfully published ${{ github.ref_name || 'manual build' }} to Chrome Web Store!"
-        
-    - name: Notify Failure
-      if: needs.publish.result == 'failure' || needs.build.result == 'failure'
-      run: |
-        echo "❌ Failed to publish extension. Check the logs for details."
-        exit 1
+        if [ "${{ needs.build-and-publish.result }}" = "success" ]; then
+          echo "🎉 Successfully deployed v${{ needs.auto-version.outputs.new-version }} to Chrome Web Store!"
+        else
+          echo "❌ Deployment failed for v${{ needs.auto-version.outputs.new-version }}"
+          exit 1
+        fi
