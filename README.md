@@ -105,9 +105,6 @@ npm run test
 npm run package
 ```
 
-
-### 🚀 Automated Publishing Setup
-
 ### � Version Management
 
 ```sh
@@ -120,19 +117,17 @@ npm run bump:minor    # 1.0.0 → 1.1.0
 npm run bump:patch    # 1.0.0 → 1.0.1
 ```
 
-### �🚀 Automated Publishing Setup
+### 🚀 Automated Publishing Setup
 
 ```sh
 npm run setup-webstore
 ```
-
 
 **Robust CI/CD Pipeline:**
 - 🔍 **PR Analysis**: Auto-detects version bump from commit messages
 - 🤖 **Auto Versioning**: Bumps version automatically on merge to main
 - 🚀 **Auto Publishing**: Deploys to Chrome Web Store automatically
 - 📋 **Smart Comments**: Bot suggests version changes on PRs
-
 
 For detailed publishing instructions, see [PUBLISHING.md](docs/PUBLISHING.md).
 
@@ -150,7 +145,21 @@ For issues or feature requests, visit our [Issue Tracker](https://github.com/Bot
 
 ## 🔄 Release Notes
 
-### **v1.0.5** *(Latest)*
+### **v1.1.0** *(Latest)*
+
+✅ **New Features:**
+
+- **Quick Save Popup** – Click the extension icon to instantly save the current tab as a bookmark. Choose your space and group directly from the popup without opening the main manager.
+- **Automated CI/CD Pipeline** – Complete GitHub Actions workflow for automated versioning, building, and publishing to Chrome Web Store.
+- **Version Management Scripts** – Automated version bumping and release management tools.
+
+🐞 **Bug Fixes:**
+
+- Enhanced UI/UX with better button states (disabled when no bookmarks in group)
+- Fixed all ESLint errors and TypeScript issues for better code quality
+- Resolved React Hook dependency warnings
+
+### **v1.0.5**
 
 ✅ **New Features:**
 
