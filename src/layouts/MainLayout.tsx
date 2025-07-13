@@ -18,10 +18,8 @@ interface MainLayoutProps {
 export function MainLayout({
   spaces,
   activeSpaceId,
-  activeSpace,
   onSpaceSelect,
   onCreateSpace,
-  onEditSpace,
   onOpenSettings,
   theme,
   children,
@@ -37,7 +35,6 @@ export function MainLayout({
             activeSpaceId={activeSpaceId}
             onSpaceSelect={onSpaceSelect}
             onCreateSpace={onCreateSpace}
-            onEditSpace={onEditSpace}
             theme={theme}
           />
 

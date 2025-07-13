@@ -217,7 +217,7 @@ export function BookmarkGroup({
         <BookmarkEditModal
           bookmark={group.bookmarks[0]} // This should be the bookmark being edited
           onClose={() => setIsModalOpen(false)}
-          onSave={(_updatedBookmark) => {
+          onSave={() => {
             // Handle bookmark update logic
             setIsModalOpen(false);
           }}

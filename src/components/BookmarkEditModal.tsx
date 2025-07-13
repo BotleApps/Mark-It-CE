@@ -40,14 +40,14 @@ export function BookmarkEditModal({ bookmark, onClose, onSave, theme }: Bookmark
       });
       setError('');
       onClose();
-    } catch (e) {
+    } catch {
       setError('Invalid URL.');
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSubmit(e as any); // Type assertion to React.FormEvent
+      handleSubmit(e as React.FormEvent); // Type assertion to React.FormEvent
     }
   };
 
