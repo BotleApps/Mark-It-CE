@@ -40,7 +40,7 @@ export function useBookmarks() {
   // Listen for space refresh messages
   useEffect(() => {
     if (typeof chrome !== 'undefined' && chrome.runtime) {
-      const listener = (message: any) => {
+      const listener = (message: { type: string }) => {
         if (message.type === 'REFRESH_SPACES') {
           refreshSpaces();
         }
@@ -354,14 +354,15 @@ export function useBookmarks() {
   const handleImportBookmarksFromFile = async (importData: unknown): Promise<void> => {
     try {
       // Type guard function to validate BookmarkExport
-      const isBookmarkExport = (data: any): data is BookmarkExport => {
+      const isBookmarkExport = (data: unknown): data is BookmarkExport => {
+        const candidate = data as Record<string, unknown>;
         return (
-          data &&
-          typeof data === 'object' &&
-          'version' in data &&
-          'spaces' in data &&
-          Array.isArray(data.spaces) &&
-          data.spaces.every((space: any) =>
+          candidate &&
+          typeof candidate === 'object' &&
+          'version' in candidate &&
+          'spaces' in candidate &&
+          Array.isArray(candidate.spaces) &&
+          candidate.spaces.every((space: Record<string, unknown>) =>
             space &&
             typeof space === 'object' &&
             'id' in space &&

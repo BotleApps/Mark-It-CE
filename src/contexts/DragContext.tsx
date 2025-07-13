@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
-import type { OpenTab, Bookmark } from '../types';
+import type { OpenTab } from '../types';
 
 interface DragContextType {
   activeTab: OpenTab | null;
   setActiveTab: (tab: OpenTab | null) => void;
-  activeDragItem: any;
-  setActiveDragItem: (item: any) => void;
+  activeDragItem: OpenTab | null;
+  setActiveDragItem: (item: OpenTab | null) => void;
   activeGroup: string | null;
   setActiveGroup: (groupId: string | null) => void;
 }
@@ -14,7 +14,7 @@ const DragContext = createContext<DragContextType | undefined>(undefined);
 
 export function DragProvider({ children }: { children: React.ReactNode }) {
   const [activeTab, setActiveTab] = useState<OpenTab | null>(null);
-  const [activeDragItem, setActiveDragItem] = useState<any>(null);
+  const [activeDragItem, setActiveDragItem] = useState<OpenTab | null>(null);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
   return (

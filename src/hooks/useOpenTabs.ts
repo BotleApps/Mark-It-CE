@@ -96,7 +96,7 @@ import { useState, useEffect, useCallback } from 'react';
         };
       }, [fetchOpenTabs]);
 
-      const handleBookmarkTab = useCallback(async (tab: OpenTab, groupId: string) => {
+      const handleBookmarkTab = useCallback(async (tab: OpenTab) => {
         setSavedTabIds(prev => new Set([...prev, tab.id]));
         setOpenTabs(prev => prev.filter(t => t.id !== tab.id));
 

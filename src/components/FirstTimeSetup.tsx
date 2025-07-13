@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
 import type { ChromeBookmarkFolder, Space, BookmarkGroup } from '../types';
 
@@ -19,6 +19,21 @@ export function FirstTimeSetup({ onComplete, onSkip, theme }: FirstTimeSetupProp
   const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
   const [importing, setImporting] = useState(false);
+
+  const getSubfolders = useCallback((node: chrome.bookmarks.BookmarkTreeNode, level: number): FolderNode[] => {
+    if (!node.children) return [];
+
+    return node.children
+      .filter(child => !child.url)
+      .map(folder => ({
+        id: folder.id,
+        title: folder.title,
+        children: getSubfolders(folder, level + 1),
+        level: level + 1,
+        isExpanded: false,
+        selected: false
+      }));
+  }, []);
 
   useEffect(() => {
     const loadBookmarks = async () => {
@@ -48,11 +63,11 @@ export function FirstTimeSetup({ onComplete, onSkip, theme }: FirstTimeSetupProp
                   children: [],
                   level: 1,
                   selected: false
-                }
+                } as FolderNode
               ],
               level: 0,
               selected: false
-            }
+            } as FolderNode
           ]);
         }
       } catch (error) {
@@ -63,22 +78,7 @@ export function FirstTimeSetup({ onComplete, onSkip, theme }: FirstTimeSetupProp
     };
 
     loadBookmarks();
-  }, []);
-
-  const getSubfolders = (node: chrome.bookmarks.BookmarkTreeNode, level: number): FolderNode[] => {
-    if (!node.children) return [];
-
-    return node.children
-      .filter(child => !child.url)
-      .map(folder => ({
-        id: folder.id,
-        title: folder.title,
-        children: getSubfolders(folder, level + 1),
-        level: level + 1,
-        isExpanded: false,
-        selected: false
-      }));
-  };
+  }, [getSubfolders]);
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => 

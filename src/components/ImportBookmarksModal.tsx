@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Loader2, ChevronRight, ChevronDown } from 'lucide-react';
 import type { ChromeBookmarkFolder } from '../types';
 
@@ -20,6 +20,23 @@ export function ImportBookmarksModal({ onClose, onImport, theme }: ImportBookmar
   const [rootFolders, setRootFolders] = useState<FolderNode[]>([]);
   const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
+
+  const getSubfolders = useCallback(async (node: chrome.bookmarks.BookmarkTreeNode, level: number): Promise<FolderNode[]> => {
+    if (!node.children) return [];
+
+    const folders = node.children.filter(child => !child.url);
+    return Promise.all(folders.map(async folder => {
+      const subfolders = await getSubfolders(folder, level + 1);
+      return {
+        id: folder.id,
+        title: folder.title,
+        children: subfolders,
+        level: level + 1,
+        isExpanded: false,
+        selected: false
+      };
+    }));
+  }, []);
 
   useEffect(() => {
     if (typeof chrome !== 'undefined' && chrome.bookmarks) {
@@ -75,24 +92,7 @@ export function ImportBookmarksModal({ onClose, onImport, theme }: ImportBookmar
       ]);
       setLoading(false);
     }
-  }, []);
-
-  const getSubfolders = async (node: chrome.bookmarks.BookmarkTreeNode, level: number): Promise<FolderNode[]> => {
-    if (!node.children) return [];
-
-    const folders = node.children.filter(child => !child.url);
-    return Promise.all(folders.map(async folder => {
-      const subfolders = await getSubfolders(folder, level + 1);
-      return {
-        id: folder.id,
-        title: folder.title,
-        children: subfolders,
-        level: level + 1,
-        isExpanded: false,
-        selected: false
-      };
-    }));
-  };
+  }, [getSubfolders]);
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => 
