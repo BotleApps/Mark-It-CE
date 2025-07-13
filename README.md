@@ -99,6 +99,38 @@ npm run lint
 npm run test
 ```
 
+### 📦 Packaging for Chrome Web Store
+
+```sh
+npm run package
+```
+
+### � Version Management
+
+```sh
+# Auto-detect version bump from commits
+npm run bump
+
+# Or specify bump type manually
+npm run bump:major    # 1.0.0 → 2.0.0
+npm run bump:minor    # 1.0.0 → 1.1.0
+npm run bump:patch    # 1.0.0 → 1.0.1
+```
+
+### �🚀 Automated Publishing Setup
+
+```sh
+npm run setup-webstore
+```
+
+**Robust CI/CD Pipeline:**
+- 🔍 **PR Analysis**: Auto-detects version bump from commit messages
+- 🤖 **Auto Versioning**: Bumps version automatically on merge to main
+- 🚀 **Auto Publishing**: Deploys to Chrome Web Store automatically
+- 📋 **Smart Comments**: Bot suggests version changes on PRs
+
+For detailed publishing instructions, see [PUBLISHING.md](docs/PUBLISHING.md).
+
 ### 🤝 Contributing
 
 Contributions are always welcome! To get started:

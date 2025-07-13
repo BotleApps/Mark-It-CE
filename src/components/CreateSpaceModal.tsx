@@ -32,7 +32,7 @@ export function CreateSpaceModal({ onClose, onSave, theme }: CreateSpaceModalPro
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSubmit(e as any); // Type assertion to React.FormEvent
+      handleSubmit(e as React.FormEvent); // Type assertion to React.FormEvent
     }
   };
 

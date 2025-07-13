@@ -1,0 +1,169 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Lint code
+      run: npm run lint
+      
+    - name: Type check
+      run: npx tsc --noEmit
+      
+    - name: Build extension
+      run: npm run build
+      
+    - name: Verify build output
+      run: |
+        echo "Checking required files in dist/:"
+        test -f dist/manifest.json && echo "✅ manifest.json"
+        test -f dist/index.html && echo "✅ index.html"
+        test -f dist/popup.html && echo "✅ popup.html"
+        test -f dist/popup.js && echo "✅ popup.js"
+        test -f dist/main.js && echo "✅ main.js"
+        test -f dist/style.css && echo "✅ style.css"
+        test -d dist/icons && echo "✅ icons directory"
+        
+        echo "Checking manifest version matches package.json:"
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        MANIFEST_VERSION=$(node -p "require('./dist/manifest.json').version")
+        echo "Package.json version: $PACKAGE_VERSION"
+        echo "Manifest.json version: $MANIFEST_VERSION"
+        
+        if [ "$PACKAGE_VERSION" = "$MANIFEST_VERSION" ]; then
+          echo "✅ Versions match"
+        else
+          echo "❌ Version mismatch!"
+          exit 1
+        fi
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-build-${{ github.sha }}
+        path: dist/
+        retention-days: 7
+
+  version-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    outputs:
+      should-bump: ${{ steps.version-check.outputs.should-bump }}
+      bump-type: ${{ steps.version-check.outputs.bump-type }}
+      current-version: ${{ steps.version-check.outputs.current-version }}
+      new-version: ${{ steps.version-check.outputs.new-version }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Check if version bump needed
+      id: version-check
+      run: |
+        # Get current version
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        
+        # Get commits in this PR
+        COMMITS=$(git log --oneline --no-merges origin/main..HEAD)
+        echo "📝 Commits in PR:"
+        echo "$COMMITS"
+        
+        # Determine bump type
+        if echo "$COMMITS" | grep -qE "(BREAKING|major|Major|MAJOR)"; then
+          BUMP_TYPE="major"
+        elif echo "$COMMITS" | grep -qE "(feat|feature|Feature|FEATURE|minor|Minor|MINOR)"; then
+          BUMP_TYPE="minor"
+        else
+          BUMP_TYPE="patch"
+        fi
+        
+        echo "🔍 Detected bump type: $BUMP_TYPE"
+        echo "bump-type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+        
+        # Calculate new version
+        case $BUMP_TYPE in
+          "major")
+            NEW_VERSION=$(npm version major --no-git-tag-version --dry-run)
+            ;;
+          "minor")
+            NEW_VERSION=$(npm version minor --no-git-tag-version --dry-run)
+            ;;
+          "patch")
+            NEW_VERSION=$(npm version patch --no-git-tag-version --dry-run)
+            ;;
+        esac
+        
+        NEW_VERSION_NUMBER=$(echo $NEW_VERSION | sed 's/v//')
+        echo "new-version=$NEW_VERSION_NUMBER" >> $GITHUB_OUTPUT
+        echo "should-bump=true" >> $GITHUB_OUTPUT
+        
+        echo "🚀 Proposed version: $CURRENT_VERSION → $NEW_VERSION_NUMBER"
+
+  suggest-version:
+    needs: [test, version-check]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && needs.version-check.outputs.should-bump == 'true'
+    
+    steps:
+    - name: Comment on PR with version suggestion
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo, number } = context.issue;
+          const currentVersion = '${{ needs.version-check.outputs.current-version }}';
+          const newVersion = '${{ needs.version-check.outputs.new-version }}';
+          const bumpType = '${{ needs.version-check.outputs.bump-type }}';
+          
+          const body = `## 🚀 Automated Version Management
+          
+          **Current Version:** \`${currentVersion}\`  
+          **Proposed Version:** \`${newVersion}\`  
+          **Bump Type:** \`${bumpType}\`
+          
+          ### 📋 What will happen when this PR is merged:
+          1. ✅ Code will be automatically tested and built
+          2. 🔄 Version will be bumped to \`${newVersion}\`
+          3. 📦 Extension will be built and packaged
+          4. 🚀 New version will be published to Chrome Web Store
+          5. 🏷️ GitHub release will be created
+          
+          ### 🎯 Auto-detected from commits:
+          - **Major:** Breaking changes, major updates
+          - **Minor:** New features, enhancements  
+          - **Patch:** Bug fixes, small improvements
+          
+          *This comment is automatically generated by the CI/CD pipeline.*`;
+          
+          await github.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: number,
+            body
+          });

@@ -26,13 +26,14 @@ export function CreateGroupModal({ onClose, onSave, theme }: CreateGroupModalPro
       onSave({
         name,
         color,
+        isExpanded: true,
       });
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSubmit(e as any); // Type assertion to React.FormEvent
+      handleSubmit(e as React.FormEvent); // Type assertion to React.FormEvent
     }
   };
 
